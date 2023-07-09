@@ -1,0 +1,80 @@
+QWidget {
+    background-color: #202020;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 14px;
+}
+
+/* QPushButton */
+QPushButton {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    padding: 10px;
+    spacing: 15px;
+    border: 0px solid;
+    border-bottom: 1px solid #2d2d2d;
+    border-radius: 4px;
+}
+QPushButton:hover {
+    background-color: #383838;
+}
+QPushButton:pressed {
+    background-color: #202020;
+}
+QPushButton:disabled {
+    color: #696969;
+}
+
+/* QScrollBar */
+QScrollBar {
+    background-color: #2d2d2d;
+    border: 0px solid;
+    border-radius: 3px;
+    width: 6px;
+}
+QScrollBar::handle {
+    background-color: #383838;
+    border: 0px solid;
+    border-radius: 3px;
+    width: 6px;
+}
+QScrollBar::handle:hover, QScrollBar::handle:pressed {
+    background-color: #696969;
+}
+QScrollBar::up-button, QScrollBar::down-button {
+    width: 0px;
+    height: 0px;
+}
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0px;
+    height: 0px;
+}
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
+/* QLineEdit, QTextEdit */
+QLineEdit, QTextEdit {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    selection-background-color: #8197ec;
+    font-family: Arial;
+    font-size: 14px;
+    padding: 10px;
+    spacing: 15px;
+    border: 0px solid;
+    border-radius: 4px;
+    border-bottom: 2px solid #2d2d2d;
+}
+QLineEdit:disabled, QTextEdit:disabled {
+    color: #696969;
+}
+QLineEdit:hover, QLineEdit:focus,
+QTextEdit:hover, QTextEdit:focus {
+    border-bottom: 2px solid #8197ec;
+}
+
+QTextEdit#protocol {
+    font-family: Consolas;
+    font-size: 13px;
+}

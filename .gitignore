@@ -1,0 +1,7 @@
+.venv
+*.code-workspace
+**__pycache__
+main.dist
+tests
+**.old
+src/*.xml

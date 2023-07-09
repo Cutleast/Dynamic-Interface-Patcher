@@ -1,0 +1,8 @@
+bethesda-structs
+jstyleson
+Nuitka
+ordered-set
+psutil
+pyperclip
+PySide6
+QtPy

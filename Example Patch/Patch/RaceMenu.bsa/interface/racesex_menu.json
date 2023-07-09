@@ -1,0 +1,52 @@
+{
+    "shapes": [
+        {
+            "id": "1,2,5,7,9",
+            "fileName": "example.svg"
+        }
+    ],
+    // '#' for filters | '~' for changes | '' for parent elements
+    "swf": {
+        "displayRect": {
+            "~Xmax": "25600",
+            "~Xmin": "0",
+            "~Ymax": "14400",
+            "~Ymin": "0"
+        },
+        "tags": [
+            {
+                "#type": "DefineSpriteTag",
+                "#spriteId": "3",
+                "subTags": [
+                    {
+                        "#type": "PlaceObject2Tag",
+                        "#characterId": "2",
+                        "#depth": "1",
+                        "~placeFlagHasMatrix": "true"
+                    },
+                    {
+                        "#type": "PlaceObject2Tag",
+                        "#characterId": "2",
+                        "#depth": "1",
+                        "matrix": {
+                            "~hasScale": "true",
+                            "~scaleX": "0",
+                            "~scaleY": "0"
+                        }
+                    }
+                ]
+            },
+            {
+                "#type": "DefineEditTextTag",
+                "#characterID": "5",
+                "textColor": {
+                    "~type": "RGBA",
+                    "~alpha": "255",
+                    "~blue": "255",
+                    "~green": "255",
+                    "~red": "255"
+                }
+            }
+        ]
+    }
+}
