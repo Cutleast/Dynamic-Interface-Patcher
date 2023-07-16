@@ -11,7 +11,7 @@ A patch consists of two parts; a "Patch" folder that has the same folder structu
 
 ### Requirements for creating patches
 
-- FFDec
+- [JPEXS Free Flash Decompiler](https://github.com/jindrapetrik/jpexs-decompiler)
   - you have to know how to use it, of course
 - (Skyrim) UI modding in general
 - basic knowledge about JSON syntax
