@@ -5,3 +5,4 @@ main.dist
 tests
 **.old
 src/*.xml
+src/*.json

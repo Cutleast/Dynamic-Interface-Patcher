@@ -8,7 +8,6 @@ Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
 import logging
 import subprocess
 from pathlib import Path
-from typing import Dict, List
 
 import errors
 from main import MainApp
@@ -57,10 +56,11 @@ class FFDec:
         self.pid = None
 
         if process.returncode:
+            self.log.error(f"FFDec Command:\n{cmd}")
             self.log.error(f"FFDec Output:\n{output}")
             raise errors.FFDecError("Failed to execute FFDec command! Check output above!")
 
-    def replace_shapes(self, shapes: Dict[Path, List[int]]):
+    def replace_shapes(self, shapes: dict[Path, list[int]]):
         """
         Replaces shapes in SWF by <shapes>.
 
@@ -70,7 +70,7 @@ class FFDec:
 
         self.log.info(f"Patching shapes of file '{self.swf_path.name}'...")
 
-        cmds: List[str] = []
+        cmds: list[str] = []
         for shape, indexes in shapes.items():
             shape = shape.resolve()
             if not shape.is_file():

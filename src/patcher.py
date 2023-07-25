@@ -5,21 +5,16 @@ Contains Patcher class.
 Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
 """
 
-
-import html
 import logging
 import os
-import re
 import shutil
 import tempfile as tmp
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List
 
 import jstyleson as json
 import bsa_extractor as bsa
 
-import errors
 import ffdec
 import utils
 from main import MainApp
@@ -30,20 +25,20 @@ class Patcher:
     Class for Patcher.
     """
 
-    patch_data: Dict[Path, dict] = None
+    patch_data: dict[Path, dict] = None
     patch_path: Path = None
     shape_path: Path = None
     original_mod_path: Path = None
     ffdec_interface: ffdec.FFDec = None
     patch_dir: Path = None
     tmpdir: Path = None
-    swf_files: Dict[Path, Path] = None
+    swf_files: dict[Path, Path] = None
 
-    def __init__(self, app: MainApp, patch_path: Path, racemenu_path: Path):
+    def __init__(self, app: MainApp, patch_path: Path, original_mod_path: Path):
         self.app = app
         self.patch_path = patch_path / "Patch"
         self.shape_path = patch_path / "Shapes"
-        self.original_mod_path = racemenu_path
+        self.original_mod_path = original_mod_path
 
         self.log = logging.getLogger(self.__repr__())
         self.log.addHandler(self.app.log_str)
@@ -73,7 +68,7 @@ class Patcher:
         for patch_file, patch_data in self.patch_data.items():
             swf_file = self.swf_files[patch_file]
 
-            shapes: Dict[Path, List[int]] = {}
+            shapes: dict[Path, list[int]] = {}
             for shape_data in patch_data.get("shapes", []):
                 shape_path: Path = (self.shape_path / shape_data["fileName"]).resolve()
 
@@ -84,7 +79,7 @@ File '{shape_path}' does not exist!"
                     )
                     continue
 
-                shape_ids: List[int] = [
+                shape_ids: list[int] = [
                     int(shape_id)
                     for shape_id in shape_data["id"].split(",")
                 ]
@@ -171,6 +166,10 @@ File '{shape_path}' does not exist!"
 
             data = utils.process_patch_data(patch_data, pre_result={}, pre_filters="", pre_changes={})
 
+            _debug_json = (Path(".") / f"{xml_file.stem}.json").resolve()
+            with open(_debug_json, "w", encoding="utf8") as file:
+                file.write(json.dumps(data, indent=4))
+
             for filter, changes in data.items():
                 filter = f".{filter}"
                 elements = xml_root.findall(filter)
@@ -187,8 +186,10 @@ File '{shape_path}' does not exist!"
 
             # Optional debug XML file
             _debug_xml = (Path(".") / f"{xml_file.name}").resolve()
-            with open(_debug_xml, "wb") as file:
-                xml_data.write(file, encoding="utf8")
+            with open(_debug_xml, "w", encoding="utf8") as file:
+                file.write(utils.beautify_xml(
+                    ET.tostring(xml_data.getroot(), encoding="utf8")
+                ))
             self.log.debug(f"Debug written to '{_debug_xml}'.")
 
     def finish_patching(self):

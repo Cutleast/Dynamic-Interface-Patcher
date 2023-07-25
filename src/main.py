@@ -117,7 +117,6 @@ class MainApp(qtw.QApplication):
         self.layout.addLayout(cmd_layout)
 
         self.patch_button = qtw.QPushButton("Patch!")
-        # self.patch_button.setDisabled(True)
         self.patch_button.clicked.connect(self.run_patcher)
         cmd_layout.addWidget(self.patch_button)
 

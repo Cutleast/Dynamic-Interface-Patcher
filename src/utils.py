@@ -9,7 +9,8 @@ import ctypes
 import psutil
 import sys
 import subprocess
-from typing import Callable, List, Dict
+import xml.dom.minidom
+from typing import Callable
 from pathlib import Path
 
 import qtpy.QtCore as qtc
@@ -167,7 +168,7 @@ def parse_path(path: Path):
     """
     bsa_path = file_path = None
 
-    parts: List[str] = []
+    parts: list[str] = []
 
     for part in path.parts:
         parts.append(part)
@@ -182,7 +183,7 @@ def parse_path(path: Path):
 
 def process_patch_data(
         patch_data,
-        pre_result: Dict[str, dict] = {},
+        pre_result: dict[str, dict] = {},
         pre_filters: str = "",
         pre_changes: dict = {}
     ):
@@ -218,5 +219,23 @@ def process_patch_data(
             pre_filters += "/item"
             for item in patch_data:
                 process_patch_data(item, cur_result, pre_filters, {})
+        
+        # Strip result
+        for key, value in cur_result.copy().items():
+            if (not key) or (not value):
+                cur_result.pop(key)
 
         return cur_result
+
+def beautify_xml(xml_string: str):
+    dom = xml.dom.minidom.parseString(xml_string)
+    pretty_xml_as_string = dom.toprettyxml()
+
+    lines = pretty_xml_as_string.splitlines()
+    lines = [
+        line + "\n"
+        for line in lines
+        if line.strip()
+    ]
+
+    return "".join(lines)
