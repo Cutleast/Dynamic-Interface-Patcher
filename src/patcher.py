@@ -109,14 +109,17 @@ File '{shape_path}' does not exist!"
 
         for file in self.patch_data.keys():
             bsa_file, mod_file = utils.parse_path(file)
+            mod_file = mod_file.with_suffix(".swf")
 
             if bsa_file:
                 bsa_file = self.original_mod_path / bsa_file.name
+            else:
+                mod_file = mod_file.relative_to(self.patch_path)
 
-            mod_file = mod_file.with_suffix(".swf")
             origin_path = self.original_mod_path / mod_file
             dest_path = self.tmpdir / mod_file
             if bsa_file is None:
+                os.makedirs(dest_path.parent, exist_ok=True)
                 shutil.copyfile(origin_path, dest_path)
             else:
                 bsa_archive = bsa.BSAArchive.parse_file(str(bsa_file))
