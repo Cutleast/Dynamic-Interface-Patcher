@@ -29,7 +29,7 @@ class MainApp(qtw.QApplication):
     """
 
     name = "Dynamic Interface Patcher"
-    version = "1.0"
+    version = "1.0.1"
 
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
@@ -172,6 +172,8 @@ here</a>.\
         self.log.info(f"Current working directory: {os.getcwd()}")
         self.log.info(f"Executable location: {Path(__file__).resolve().parent}")
 
+        self.check_java()
+
         self.log.debug("Program started!")
 
         self.root.show()
@@ -229,8 +231,7 @@ here</a>.\
                     "https://www.java.com/en/download/"
                 )
 
-            self.root.close()
-            sys.exit()
+            self.exit()
 
         self.log.info("Java found.")
 
