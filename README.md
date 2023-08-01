@@ -23,6 +23,10 @@ More info on creating patches can be found in the [documentation](./DOCUMENTATIO
 - Can be installed as a mod in MO2 or Vortex
 - Commandline arguments for auto patching
 
+# Official Patches
+
+See [here](./OfficialPatches.md) for a list of released and planned patches.
+
 # Contributing
 
 ### 1. Feedback (Suggestions/Issues)
