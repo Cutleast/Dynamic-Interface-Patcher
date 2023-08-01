@@ -6,6 +6,7 @@ Python Version: 3.11.2
 Qt Version: 6.5.1
 """
 
+import argparse
 import logging
 import os
 import shutil
@@ -28,7 +29,7 @@ class MainApp(qtw.QApplication):
     """
 
     name = "Dynamic Interface Patcher"
-    version = "0.1"
+    version = "1.0"
 
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
@@ -36,6 +37,16 @@ class MainApp(qtw.QApplication):
 
     def __init__(self):
         super().__init__()
+
+        # Parse commandline arguments
+        parser = argparse.ArgumentParser(
+            prog=Path(sys.executable).name,
+            description=f"{self.name} v{self.version} (c) Cutleast"
+        )
+        parser.add_argument("-d", "--debug", help="Enables debug mode so that debug files get outputted.", action='store_true')
+        parser.add_argument("patchpath", nargs='?', default='', help="Path to patch that gets automatically run. An original mod path must also be given!")
+        parser.add_argument("originalpath", nargs='?', default='', help="Path to original mod that gets automatically patched. A patch path must also be given!")
+        self.cmd_args = parser.parse_args()
 
         self.log = logging.getLogger(self.__repr__())
         log_format = "[%(asctime)s.%(msecs)03d]"
@@ -66,45 +77,48 @@ class MainApp(qtw.QApplication):
         self.root.setLayout(self.layout)
 
         self.conf_layout = qtw.QGridLayout()
+        self.conf_layout.setColumnStretch(1, 1)
         self.layout.addLayout(self.conf_layout)
 
         patch_path_label = qtw.QLabel("Enter Path to DIP Patch:")
         self.conf_layout.addWidget(patch_path_label, 0, 0)
-        self.patch_path_entry = qtw.QLineEdit()
+        self.patch_path_entry = qtw.QComboBox()
+        self.patch_path_entry.setEditable(True)
         self.conf_layout.addWidget(self.patch_path_entry, 0, 1)
         patch_path_button = qtw.QPushButton("Browse...")
 
         def browse_patch_path():
             file_dialog = qtw.QFileDialog(self.root)
             file_dialog.setWindowTitle("Browse DIP Patch...")
-            path = Path(self.patch_path_entry.text()) if self.patch_path_entry.text() else Path(".")
+            path = Path(self.patch_path_entry.currentText()) if self.patch_path_entry.currentText() else Path(".")
             path = path.resolve()
             file_dialog.setDirectory(str(path.parent))
             file_dialog.setFileMode(qtw.QFileDialog.FileMode.Directory)
             if file_dialog.exec():
                 folder = file_dialog.selectedFiles()[0]
                 folder = os.path.normpath(folder)
-                self.patch_path_entry.setText(folder)
+                self.patch_path_entry.setCurrentText(folder)
         patch_path_button.clicked.connect(browse_patch_path)
         self.conf_layout.addWidget(patch_path_button, 0, 2)
 
-        mod_path_label = qtw.QLabel("Enter Path to UI Mod:")
+        mod_path_label = qtw.QLabel("Enter Path to patched Mod:")
         self.conf_layout.addWidget(mod_path_label, 1, 0)
-        self.mod_path_entry = qtw.QLineEdit()
+        self.mod_path_entry = qtw.QComboBox()
+        self.mod_path_entry.setEditable(True)
         self.conf_layout.addWidget(self.mod_path_entry, 1, 1)
         mod_path_button = qtw.QPushButton("Browse...")
 
         def browse_mod_path():
             file_dialog = qtw.QFileDialog(self.root)
-            file_dialog.setWindowTitle("Browse UI Mod...")
-            path = Path(self.mod_path_entry.text()) if self.mod_path_entry.text() else Path(".")
+            file_dialog.setWindowTitle("Browse patched Mod...")
+            path = Path(self.mod_path_entry.currentText()) if self.mod_path_entry.currentText() else Path(".")
             path = path.resolve()
             file_dialog.setDirectory(str(path.parent))
             file_dialog.setFileMode(qtw.QFileDialog.FileMode.Directory)
             if file_dialog.exec():
                 folder = file_dialog.selectedFiles()[0]
                 folder = os.path.normpath(folder)
-                self.mod_path_entry.setText(folder)
+                self.mod_path_entry.setCurrentText(folder)
         mod_path_button.clicked.connect(browse_mod_path)
         self.conf_layout.addWidget(mod_path_button, 1, 2)
 
@@ -131,7 +145,7 @@ class MainApp(qtw.QApplication):
             "\
 Interested in creating own patches? \
 Read the documentation \
-<a href='https://github.com/Cutleast/DynamicInterfacePatcher/blob/main/DOCUMENTATION.md'>\
+<a href='https://github.com/Cutleast/Dynamic-Interface-Patcher/blob/main/DOCUMENTATION.md'>\
 here</a>.\
 "
         )
@@ -144,7 +158,7 @@ here</a>.\
         palette = self.palette()
         palette.setColor(
             palette.ColorRole.Link,
-            qtg.QColor("#8197ec")
+            qtg.QColor("#006fde")
         )
         self.setPalette(palette)
 
@@ -152,10 +166,28 @@ here</a>.\
         self.std_handler.output_signal.emit(self.std_handler._content)
         self.done_signal.connect(self.done)
 
+        self.log.debug("Scanning for patches...")
+        self.patch_path_entry.addItems(self.get_patches())
+        
+        self.log.info(f"Current working directory: {os.getcwd()}")
+        self.log.info(f"Executable location: {Path(__file__).resolve().parent}")
+
         self.log.debug("Program started!")
 
         self.root.show()
         utils.apply_dark_title_bar(self.root)
+
+        if (patch_path := self.cmd_args.patchpath) and (original_path := self.cmd_args.originalpath):
+            self.log.info("Patching automatically...")
+            self.patch_path_entry.setCurrentText(patch_path)
+            self.mod_path_entry.setCurrentText(original_path)
+            self.run_patcher()
+
+        if self.cmd_args.debug:
+            self.debug = True
+            self.log.info("Debug mode enabled.")
+        else:
+            self.debug = False
 
     def __repr__(self):
         return "MainApp"
@@ -212,12 +244,24 @@ here</a>.\
         self.protocol_widget.insertPlainText(text)
         self.protocol_widget.moveCursor(qtg.QTextCursor.MoveOperation.End)
 
+    def get_patches(self):
+        parent_folder = Path(os.getcwd()).resolve().parent
+
+        self.log.debug(f"Searching in '{parent_folder}'...")
+
+        paths: list[str] = []
+
+        for folder in parent_folder.glob("*\\*DIP*\\Patch"):
+            paths.append(str(folder.resolve().parent))
+
+        return paths
+
     def run_patcher(self):
         try:
             self.patcher = patcher.Patcher(
                 self,
-                Path(self.patch_path_entry.text()).resolve(),
-                Path(self.mod_path_entry.text()).resolve()
+                Path(self.patch_path_entry.currentText()).resolve(),
+                Path(self.mod_path_entry.currentText()).resolve()
             )
             self.patcher_thread = utils.Thread(
                 self.patcher.patch,
@@ -243,6 +287,37 @@ here</a>.\
 
         self.log.info(f"Patching done in {(time.time() - self.start_time):.3f} second(s).")
 
+        if self.cmd_args.patchpath and self.cmd_args.originalpath:
+            self.exit()
+
+        message_box = qtw.QMessageBox(self.root)
+        message_box.setWindowIcon(self.root.windowIcon())
+        message_box.setStyleSheet(self.root.styleSheet())
+        utils.apply_dark_title_bar(message_box)
+        message_box.setWindowTitle(f"Patch completed in {(time.time() - self.start_time):.3f} second(s)")
+        message_box.setText(
+            "Patch successfully completed"
+        )
+        message_box.setStandardButtons(
+            qtw.QMessageBox.StandardButton.No
+            | qtw.QMessageBox.StandardButton.Yes
+        )
+        message_box.setDefaultButton(
+            qtw.QMessageBox.StandardButton.Yes
+        )
+        message_box.button(
+            qtw.QMessageBox.StandardButton.Yes
+        ).setText("Close DIP")
+        message_box.button(
+            qtw.QMessageBox.StandardButton.No
+        ).setText("Ok")
+        choice = message_box.exec()
+
+        # Handle the user's choice
+        if choice == qtw.QMessageBox.StandardButton.Yes:
+            # Close DIP
+            self.exit()
+
     def cancel_patcher(self):
         self.patcher_thread.terminate()
 
@@ -257,7 +332,9 @@ here</a>.\
                 shutil.rmtree(self.patcher.tmpdir)
                 self.log.info("Cleaned up temporary folder.")
 
-        self.done()
+        self.patch_button.setText("Patch!")
+        self.patch_button.clicked.disconnect(self.cancel_patcher)
+        self.patch_button.clicked.connect(self.run_patcher)
         self.log.warning("Patch incomplete!")
 
 

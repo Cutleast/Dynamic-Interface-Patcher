@@ -12,11 +12,10 @@ DIST_FOLDER = Path("main.dist").resolve()
 FOMOD_FOLDER = Path("fomod").resolve()
 OUTPUT_FOLDER = Path("DIP_with_fomod").resolve() / "fomod"
 APPNAME="Dynamic Interface Patcher"
-VERSION="0.1"
+VERSION="1.0"
 AUTHOR="Cutleast"
 LICENSE="Attribution-NonCommercial-NoDerivatives 4.0 International"
 UNUSED_FILES = [
-    DIST_FOLDER / "qt6svg.dll",
     DIST_FOLDER / "qt6datavisualization.dll",
     DIST_FOLDER / "qt6network.dll",
     DIST_FOLDER / "qt6pdf.dll",

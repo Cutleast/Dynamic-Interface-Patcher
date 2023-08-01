@@ -2,7 +2,7 @@
 
 **This documentation always refers to the latest version of the patcher!**
 
-*Latest version as time of writing: v0.1*
+*Latest version as time of writing: v1.0*
 
 Patches are done in two major steps. At first they are created in FFDec itself and then they get documented in a json files for the automated patcher.
 A patch consists of two parts; a "Patch" folder that has the same folder structure as the mod to patch (including BSA files as folders). It contains the specifications and instructions for the patcher and there is a "Shapes" folder containing the shapes that will replace the shapes.
@@ -23,7 +23,7 @@ A patch consists of two parts; a "Patch" folder that has the same folder structu
 
 # Patch folder structure
 
-The "Patch" folder has the same structure as the mod that gets patched. This includes BSA archives as folders. For example, to patch `racesex_menu.swf` from the RaceMenu mod the path of the respective JSON file looks like this:
+The root folder name should contain "DIP" for the patcher to auto detect it and the "Patch" folder has the same structure as the mod that gets patched. This includes BSA archives as folders. For example, to patch `racesex_menu.swf` from the RaceMenu mod the path of the respective JSON file looks like this:
 
 `<RaceMenu>/RaceMenu.bsa/interface/racesex_menu.json`
 
@@ -33,7 +33,7 @@ And a complete RaceMenu patch could look like this:
 
 ```
 data (in Skyrim's installation directory)
-└── Example patch (root folder)
+└── Example DIP Patch (root folder)
     ├── Patch
     |   └── RaceMenu.bsa
     |       └── interface
@@ -124,4 +124,19 @@ Since not all changes should be applied to every element in the file, filters ar
         ]
     }
 }
+```
+
+# Patcher Commandline Usage
+
+```bash
+Usage: DIP.exe [-d] [patchpath] [originalpath]
+
+Dynamic Interface Patcher (c) Cutleast
+
+Positional arguments:
+  patchpath     Path to patch that gets automatically run. An original mod path must also be given!
+  originalpath  Path to original mod that gets automatically patched. A patch path must also be given!
+
+Options:
+  -d, --debug   Enables debug mode so that debug files get outputted.
 ```

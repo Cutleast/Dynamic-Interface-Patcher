@@ -16,6 +16,28 @@ class BSAArchive(_BSAArchive):
     Has method to extract single files.
     """
 
+    def contains_file(
+            self,
+            file: str | Path
+    ):
+        """
+        Checks if <file> is in BSA.
+
+        Parameters:
+            file: str or Path, relative to BSA's root folder
+
+        Returns:
+            file_exists: bool
+        """
+
+        archive_files = list(self.iter_files())
+
+        for archive_file in archive_files:
+            if Path(archive_file.filepath) == Path(file):
+                return True
+
+        return False
+
     def extract_file(
             self,
             to_dir: str | Path,

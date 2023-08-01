@@ -167,38 +167,119 @@ File '{shape_path}' does not exist!"
             xml_data = ET.parse(str(xml_file))
             xml_root = xml_data.getroot()
 
-            data = utils.process_patch_data(patch_data, pre_result={}, pre_filters="", pre_changes={})
+            data = utils.process_patch_data(patch_data)
 
-            _debug_json = (Path(".") / f"{xml_file.stem}.json").resolve()
-            with open(_debug_json, "w", encoding="utf8") as file:
-                file.write(json.dumps(data, indent=4))
+            if self.app.debug:
+                _debug_json = (Path(".") / f"{xml_file.stem}.json").resolve()
+                with open(_debug_json, "w", encoding="utf8") as file:
+                    file.write(json.dumps(data, indent=4))
 
-            for filter, changes in data.items():
+            xml_root = self.split_frames(xml_root)
+
+            for item in data:
+                filter = item.get("filter", "")
+                changes = item.get("changes", {})
                 filter = f".{filter}"
                 elements = xml_root.findall(filter)
                 if not elements:
-                    self.log.debug(f"Failed to patch element! Found no matching element for filter '{filter}'.")
+                    parent_filter, new_element_tag = filter.rsplit("/", 1)
+                    self.log.debug(f"Creating new '{new_element_tag}' element at '{parent_filter}'...")
+                    new_element = ET.Element(new_element_tag)
+                    new_element.attrib = changes
+                    parents = xml_root.findall(parent_filter)
+                    for parent in parents:
+                        parent.append(new_element)
+
                 for element in elements:
                     for key, value in changes.items():
                         element.attrib[key] = str(value)
             patch_data = {}
+
+            xml_root = self.unsplit_frames(xml_root)
 
             self.log.info("Writing XML file...")
             with open(xml_file, "wb") as file:
                 xml_data.write(file, encoding="utf8")
 
             # Optional debug XML file
-            _debug_xml = (Path(".") / f"{xml_file.name}").resolve()
-            with open(_debug_xml, "w", encoding="utf8") as file:
-                file.write(utils.beautify_xml(
-                    ET.tostring(xml_data.getroot(), encoding="utf8")
-                ))
-            self.log.debug(f"Debug written to '{_debug_xml}'.")
+            if self.app.debug:
+                _debug_xml = (Path(".") / f"{xml_file.name}").resolve()
+                with open(_debug_xml, "w", encoding="utf8") as file:
+                    file.write(utils.beautify_xml(
+                        ET.tostring(xml_data.getroot(), encoding="utf8")
+                    ))
+                self.log.debug(f"Debug written to '{_debug_xml}'.")
 
+    @staticmethod
+    def split_frames(xml_element: ET.Element):
+        """
+        Split frames in xml_element recursively
+        and return xml_element with frames.
+        """
+
+        new_frame = ET.Element("frame")
+        current_frame = 1
+        new_frame.set("frameId", str(current_frame))
+        new_frame_subtags = ET.Element("subTags")
+        new_frame.append(new_frame_subtags)
+
+        frame_delimiters = xml_element.findall("./item[@type='ShowFrameTag']")
+
+        # Iterate over all child elements
+        for child in xml_element.findall("./"):
+            # Split child recursively
+            child = Patcher.split_frames(child)
+
+            # If child is not a frame delimiter
+            if len(frame_delimiters) > 1:
+                # Remove child from xml_element
+                xml_element.remove(child)
+
+                # If child is not a frame delimiter
+                if child.get("type") != "ShowFrameTag":
+                    # Append child to current frame
+                    new_frame_subtags.append(child)
+
+                # If child is a frame delimiter
+                elif child in frame_delimiters:
+                    xml_element.append(new_frame)
+                    # Create new frame
+                    new_frame = ET.Element("frame")
+                    current_frame += 1
+                    new_frame.set("frameId", str(current_frame))
+                    new_frame_subtags = ET.Element("subTags")
+                    new_frame.append(new_frame_subtags)
+
+        return xml_element
+
+    @staticmethod
+    def unsplit_frames(xml_element: ET.Element):
+        """
+        This functions is a reverse of split_frames.
+        """
+
+        for child in xml_element.findall("./"):
+            frames = child.findall("./frame")
+
+            for frame in frames:
+                child.remove(frame)
+
+                for frame_child in frame.findall("./subTags/"):
+                    child.append(frame_child)
+                
+                frame_tag = ET.Element("item")
+                frame_tag.set("type", "ShowFrameTag")
+                child.append(frame_tag)
+
+            Patcher.unsplit_frames(child)
+
+        return xml_element
+
+    
     def finish_patching(self):
-        output_path = Path(".").resolve().parent
-        
-        os.makedirs(output_path.parent, exist_ok=True)
+        output_path = Path(os.getcwd()).resolve()
+
+        # os.makedirs(output_path.parent, exist_ok=True)
         for file in self.swf_files.values():
             dest = output_path / file.relative_to(self.tmpdir)
             os.makedirs(dest.parent, exist_ok=True)

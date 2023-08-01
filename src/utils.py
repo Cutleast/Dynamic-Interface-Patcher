@@ -166,6 +166,7 @@ def parse_path(path: Path):
     )
     ```
     """
+
     bsa_path = file_path = None
 
     parts: list[str] = []
@@ -181,51 +182,47 @@ def parse_path(path: Path):
 
     return (bsa_path, file_path)
 
-def process_patch_data(
-        patch_data,
-        pre_result: dict[str, dict] = {},
-        pre_filters: str = "",
-        pre_changes: dict = {}
-    ):
-        cur_result = pre_result
+def process_patch_data(patch_data: dict):
+    result: list[dict[str, str | dict]] = []
 
-        if isinstance(patch_data, dict):
-            cur_filters = (pre_filters + "/item") if pre_filters.endswith("]") else pre_filters
-            cur_changes = pre_changes
+    def process_data(data: dict | list, cur_filter: str = ""):
+        cur_result: dict[str, str | dict] = {}
+        cur_changes: dict[str, str] = {}
 
-            for key, value in patch_data.items():
-                if key.startswith("#"): # filters
-                    cur_filters += f"[@{key.removeprefix('#')}='{str(value)}']"
+        if isinstance(data, list):
+            for item in data:
+                if child_result := process_data(item, cur_filter + "/item"):
+                    result.append(child_result)
 
-                elif key.startswith("~"): # attributes
-                    cur_changes[key.removeprefix('~')] = value
+        else:
+            for key, value in data.items():
+                if isinstance(value, str):
+                    if key.startswith("#"):
+                        attribute = key.removeprefix("#")
+                        # Fix frames
+                        if attribute == "frameId":
+                            cur_filter, _ = cur_filter.rsplit("/", 1)
+                            cur_filter += "/frame"
+                        cur_filter += f"[@{attribute}='{value}']"
+                    else:
+                        attribute = key.removeprefix("~")
+                        cur_changes[attribute] = value
 
-                elif (not isinstance(value, str)): # children
-                    if not cur_filters.endswith("]"):
-                        cur_filters = cur_filters.removesuffix(cur_filters.split("/")[-1])
-                        cur_filters = cur_filters.removesuffix("/")
-                    cur_filters = f"{cur_filters}/{key}"
-                    process_patch_data(value, cur_result, cur_filters, {})
-
-            if cur_filters and cur_changes:
-                cur_filters = cur_filters.removesuffix("/item")
-                if cur_result:
-                    cur_filters = cur_filters.removeprefix(list(cur_result.keys())[0])
-                if cur_filters in cur_result:
-                    print(f"WARNING! Filter '{cur_filters}' does already exist! Overwriting...")
-                cur_result[cur_filters] = cur_changes
-
-        elif isinstance(patch_data, list):
-            pre_filters += "/item"
-            for item in patch_data:
-                process_patch_data(item, cur_result, pre_filters, {})
-        
-        # Strip result
-        for key, value in cur_result.copy().items():
-            if (not key) or (not value):
-                cur_result.pop(key)
+                    if cur_filter and cur_changes:
+                        cur_result = {
+                            "filter": cur_filter,
+                            "changes": cur_changes
+                        }
+                else:
+                    if child_result := process_data(value, cur_filter + f"/{key}"):
+                        result.append(child_result)
 
         return cur_result
+
+    if cur_result := process_data(patch_data):
+        result.append(cur_result)
+
+    return result
 
 def beautify_xml(xml_string: str):
     dom = xml.dom.minidom.parseString(xml_string)
