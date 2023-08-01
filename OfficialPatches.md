@@ -14,17 +14,21 @@
 * [Untarnished UI](https://www.nexusmods.com/skyrimspecialedition/mods/97357)
 
 # Planned/Coming soon
-* RaceMenu Patches for
-  * New Horizons UI
-  * Dragonbreaker UI
-* Minimap
-  * Dear Diary Dark Mode
-  * Dear Diary
-  * Horizons UI
-* Enhanced Character Edit (ECE) <-- maybe
-  * NORDIC UI
-  * Dear Diary Dark Mode
-  * Untarnished UI
-  * Dear Diary Light Mode
-* Any User Interface mod that makes mod authors a hard time patching them... :)
+
+### RaceMenu Patches for
+* New Horizons UI
+* Dragonbreaker UI
+
+### Minimap
+* Dear Diary Dark Mode
+* Dear Diary
+* Horizons UI
+
+### Enhanced Character Edit (ECE) <-- maybe
+* NORDIC UI
+* Dear Diary Dark Mode
+* Untarnished UI
+* Dear Diary Light Mode
+
+### Any User Interface mod that makes mod authors a hard time patching them... :)
 
