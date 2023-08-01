@@ -29,7 +29,7 @@ class MainApp(qtw.QApplication):
     """
 
     name = "Dynamic Interface Patcher"
-    version = "1.0.1"
+    version = "1.0.2"
 
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
@@ -231,7 +231,7 @@ here</a>.\
                     "https://www.java.com/en/download/"
                 )
 
-            self.exit()
+            sys.exit()
 
         self.log.info("Java found.")
 
