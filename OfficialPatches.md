@@ -24,13 +24,6 @@
 * Dear Diary
 * Horizons UI
 
-### Experience
-* NORDIC UI
-* Untarnished UI
-* Dear Diary Dark Mode
-* Dear Diary
-* Horizons UI
-
 ### Enhanced Character Edit (ECE) <-- maybe
 * NORDIC UI
 * Untarnished UI
