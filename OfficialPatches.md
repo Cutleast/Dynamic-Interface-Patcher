@@ -24,11 +24,18 @@
 * Dear Diary
 * Horizons UI
 
+### Experience
+* NORDIC UI
+* Untarnished UI
+* Dear Diary Dark Mode
+* Dear Diary
+* Horizons UI
+
 ### Enhanced Character Edit (ECE) <-- maybe
 * NORDIC UI
-* Dear Diary Dark Mode
 * Untarnished UI
-* Dear Diary Light Mode
+* Dear Diary Dark Mode
+* Dear Diary
 
 ### Any User Interface mod that makes mod authors a hard time patching them... :)
 
