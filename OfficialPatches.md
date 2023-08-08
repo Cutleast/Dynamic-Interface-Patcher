@@ -9,13 +9,11 @@
 
 ### MiniMap
 * [Nordic UI](https://www.nexusmods.com/skyrimspecialedition/mods/97356)
-* [Horizons UI](https://www.nexusmods.com/skyrimspecialedition/mods/97358)
-* [Dear Diary Dark Mode (Warm Text)](https://www.nexusmods.com/skyrimspecialedition/mods/97359)
 * [Untarnished UI](https://www.nexusmods.com/skyrimspecialedition/mods/97357)
 
 # Planned/Coming soon
 
-### RaceMenu Patches for
+### RaceMenu
 * New Horizons UI
 * Dragonbreaker UI
 
