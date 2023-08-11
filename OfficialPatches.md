@@ -7,14 +7,19 @@
 * [Dear Diary (Light Mode)](https://www.nexusmods.com/skyrimspecialedition/mods/97355)
 * [Untarnished UI](https://www.nexusmods.com/skyrimspecialedition/mods/97347)
 
-### MiniMap
+### Minimap
 * [Nordic UI](https://www.nexusmods.com/skyrimspecialedition/mods/97356)
 * [Untarnished UI](https://www.nexusmods.com/skyrimspecialedition/mods/97357)
+
+# Work in Progress
+
+### RaceMenu
+* Edge UI
+* New Horizons UI
 
 # Planned/Coming soon
 
 ### RaceMenu
-* New Horizons UI
 * Dragonbreaker UI
 
 ### Minimap
