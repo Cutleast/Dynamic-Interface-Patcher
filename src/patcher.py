@@ -277,7 +277,7 @@ File '{shape_path}' does not exist!"
 
     
     def finish_patching(self):
-        output_path = Path(os.getcwd()).resolve()
+        output_path = Path(os.getcwd()).parent
 
         # os.makedirs(output_path.parent, exist_ok=True)
         for file in self.swf_files.values():

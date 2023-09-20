@@ -57,7 +57,7 @@ QScrollBar::add-page, QScrollBar::sub-page {
 QLineEdit, QTextEdit {
     background-color: #2d2d2d;
     color: #ffffff;
-    selection-background-color: #006fde;
+    selection-background-color: #f8c029;
     font-family: Arial;
     font-size: 14px;
     padding: 10px;
@@ -71,7 +71,7 @@ QLineEdit:disabled, QTextEdit:disabled {
 }
 QLineEdit:hover, QLineEdit:focus,
 QTextEdit:hover, QTextEdit:focus {
-    border-bottom: 2px solid #006fde;
+    border-bottom: 2px solid #f8c029;
 }
 
 QTextEdit#protocol {
@@ -105,7 +105,7 @@ QComboBox::down-arrow {
     color: #ffffff;
 }
 QComboBox:editable:hover, QComboBox:editable:focus {
-    border-bottom: 2px solid #006fde;
+    border-bottom: 2px solid #f8c029;
 }
 QComboBox:!editable:hover {
     background-color: #696969;
@@ -131,5 +131,5 @@ QComboBox QAbstractItemView::item {
     padding: 4px;
 }
 QComboBox QAbstractItemView::item:selected {
-    background: #006fde;
+    background: #f8c029;
 }

@@ -29,7 +29,7 @@ class MainApp(qtw.QApplication):
     """
 
     name = "Dynamic Interface Patcher"
-    version = "1.0.2"
+    version = "1.0.3"
 
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
@@ -69,7 +69,7 @@ class MainApp(qtw.QApplication):
         self.root = qtw.QWidget()
         self.root.setWindowTitle(f"{self.name} v{self.version}")
         self.root.setStyleSheet((Path(".") / "assets" / "style.qss").read_text())
-        self.root.setWindowIcon(qtg.QIcon("./assets/icon.ico"))
+        self.root.setWindowIcon(qtg.QIcon("./assets/titlebar_icon.ico"))
         self.root.setMinimumWidth(1000)
         self.root.setMinimumHeight(500)
 
@@ -158,7 +158,7 @@ here</a>.\
         palette = self.palette()
         palette.setColor(
             palette.ColorRole.Link,
-            qtg.QColor("#006fde")
+            qtg.QColor("#f8c029")
         )
         self.setPalette(palette)
 
@@ -168,7 +168,13 @@ here</a>.\
 
         self.log.debug("Scanning for patches...")
         self.patch_path_entry.addItems(self.get_patches())
-        
+
+        # If the current working directory is the data folder,
+        # set the mod path to the parent folder
+        parent_folder = Path(os.getcwd()).parent
+        if parent_folder.parts[-1].lower() == "data":
+            self.mod_path_entry.setCurrentText(str(parent_folder))
+
         self.log.info(f"Current working directory: {os.getcwd()}")
         self.log.info(f"Executable location: {Path(__file__).resolve().parent}")
 
@@ -246,14 +252,14 @@ here</a>.\
         self.protocol_widget.moveCursor(qtg.QTextCursor.MoveOperation.End)
 
     def get_patches(self):
-        parent_folder = Path(os.getcwd()).resolve().parent
+        parent_folder = Path(os.getcwd()).parent
 
         self.log.debug(f"Searching in '{parent_folder}'...")
 
         paths: list[str] = []
 
-        for folder in parent_folder.glob("*\\*DIP*\\Patch"):
-            paths.append(str(folder.resolve().parent))
+        for folder in parent_folder.glob(".\\*DIP*\\Patch"):
+            paths.append(str(folder.parent))
 
         return paths
 
