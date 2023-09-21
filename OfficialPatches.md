@@ -18,6 +18,10 @@
 * New Horizons UI
 
 # Planned/Coming soon
+None (see below)
+
+# Cancelled/Discontinued indefinitely 
+Due to other projects in our timeline, we will not be able to make these patches available in the near future. Feel free to create one or more of them, but make sure to notify us so we can remove the patch from this list.
 
 ### RaceMenu
 * Dragonbreaker UI
@@ -32,6 +36,4 @@
 * Untarnished UI
 * Dear Diary Dark Mode
 * Dear Diary
-
-### Any User Interface mod that makes mod authors a hard time patching them... :)
 
