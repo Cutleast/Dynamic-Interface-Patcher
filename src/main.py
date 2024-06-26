@@ -154,13 +154,80 @@ here</a>.\
         docs_label.setOpenExternalLinks(True)
         self.layout.addWidget(docs_label)
 
-        # Fix link color
-        palette = self.palette()
-        palette.setColor(
-            palette.ColorRole.Link,
-            qtg.QColor("#f8c029")
+        # Chain patching list
+        self.chain_widget = qtw.QWidget()
+        self.chain_widget.setObjectName("transparent")
+        self.chain_widget.hide()
+        self.splitter.addWidget(self.chain_widget)
+        chain_layout = qtw.QVBoxLayout()
+        chain_layout.setAlignment(qtc.Qt.AlignmentFlag.AlignTop)
+        self.chain_widget.setLayout(chain_layout)
+
+        chain_cmd_layout = qtw.QHBoxLayout()
+        chain_layout.addLayout(chain_cmd_layout)
+        chain_add_button = qtw.QPushButton("Add Patch to Queue")
+        chain_cmd_layout.addWidget(chain_add_button)
+        chain_rem_button = qtw.QPushButton("Remove selected Patch")
+        chain_rem_button.setEnabled(False)
+        chain_cmd_layout.addWidget(chain_rem_button)
+
+        self.chain_list_widget = qtw.QListWidget()
+        self.chain_list_widget.setLayoutDirection(qtc.Qt.LayoutDirection.RightToLeft)
+        self.chain_list_widget.setDragDropMode(
+            qtw.QListWidget.DragDropMode.InternalMove
         )
-        self.setPalette(palette)
+        self.chain_list_widget.setDragEnabled(True)
+        chain_layout.addWidget(self.chain_list_widget, 1)
+        self.chain_list_widget.itemSelectionChanged.connect(
+            lambda: chain_rem_button.setEnabled(True)
+        )
+
+        def add_chain_patch():
+            path = self.patch_path_entry.currentText().strip()
+            if not path:
+                return
+            queue_items = utils.get_list_widget_items(self.chain_list_widget)
+            path_items = utils.get_combobox_items(self.patch_path_entry)
+            if path not in queue_items:
+                self.chain_list_widget.addItem(path)
+                if path in path_items:
+                    self.patch_path_entry.removeItem(path_items.index(path))
+                self.patch_path_entry.setCurrentIndex(0)
+
+        def rem_chain_patch():
+            current_patch = self.chain_list_widget.takeItem(
+                self.chain_list_widget.currentRow()
+            ).text()
+            self.patch_path_entry.addItem(current_patch)
+            if not self.chain_list_widget.count():
+                chain_rem_button.setDisabled(True)
+
+        chain_add_button.clicked.connect(add_chain_patch)
+        chain_rem_button.clicked.connect(rem_chain_patch)
+
+        drag_hint_label = qtw.QLabel("Rearrange Patches by Dragging")
+        chain_layout.addWidget(drag_hint_label)
+
+        # Toggle chain patch logic
+        def toggle_chain_mode():
+            if self.chain_widget.isVisible():
+                self.chain_widget.hide()
+                self.toggle_chain_button.setIcon(
+                    qta.icon("fa.angle-double-left", color="#ffffff")
+                )
+                self.log.info("Chain Mode disabled.")
+                self.patch_button.setText("Patch!")
+            else:
+                self.chain_widget.show()
+                self.toggle_chain_button.setIcon(
+                    qta.icon("fa.angle-double-right", color="#ffffff")
+                )
+                self.log.info("Chain Mode enabled.")
+                self.patch_button.setText("Chain Patch!")
+
+        self.toggle_chain_button.clicked.connect(toggle_chain_mode)
+
+        layout.addWidget(self.splitter)
 
         self.std_handler.output_signal.connect(self.handle_stdout)
         self.std_handler.output_signal.emit(self.std_handler._content)
@@ -264,30 +331,65 @@ here</a>.\
         return paths
 
     def run_patcher(self):
-        try:
-            self.patcher = patcher.Patcher(
-                self,
-                Path(self.patch_path_entry.currentText()).resolve(),
-                Path(self.mod_path_entry.currentText()).resolve()
-            )
+        if self.chain_widget.isHidden():
+            try:
+                self.patcher = patcher.Patcher(
+                    self,
+                    Path(self.patch_path_entry.currentText()),
+                    Path(self.mod_path_entry.currentText()),
+                )
+                self.patcher_thread = utils.Thread(
+                    lambda: self.patcher.patch(
+                        repack_bsas=self.repack_checkbox.isChecked()
+                    ),
+                    "PatcherThread",
+                    self,
+                )
+                self.progress_bar.setRange(0, 0)
+            except errors.InvalidPatchError as ex:
+                self.log.error(f"Selected patch is invalid: {ex}")
+                return
+        elif self.chain_list_widget.count():
+            self.progress_bar.setRange(0, self.chain_list_widget.count())
             self.patcher_thread = utils.Thread(
-                self.patcher.patch,
-                "PatcherThread",
-                self
+                self.run_chain_patch, "PatcherThread", self
             )
-        except errors.InvalidPatchError as ex:
-            self.log.error(f"Selected patch is invalid: {ex}")
+        else:
             return
 
         self.patch_button.setText("Cancel")
         self.patch_button.clicked.disconnect(self.run_patcher)
         self.patch_button.clicked.connect(self.cancel_patcher)
-
+        self.mod_path_entry.setDisabled(True)
+        self.patch_path_entry.setDisabled(True)
+        self.chain_widget.setDisabled(True)
+        self.toggle_chain_button.setDisabled(True)
         self.start_time = time.time()
-
         self.patcher_thread.start()
 
+    def run_chain_patch(self):
+        patch_path = Path(self.chain_list_widget.item(0).text())
+        mod_path = Path(self.mod_path_entry.currentText())
+        self.patcher = patcher.Patcher(
+            app=self, patch_path=patch_path, original_mod_path=mod_path
+        )
+        self.patcher.patch()
+        self.incr_progress_signal.emit()
+        for i in range(self.chain_list_widget.count()):
+            patch_path = Path(self.chain_list_widget.item(0).text())
+            mod_path = Path(self.mod_path_entry.currentText())
+            self.patcher = patcher.Patcher(
+                app=self, patch_path=patch_path, original_mod_path=mod_path
+            )
+            self.patcher.patch(True)
+            self.incr_progress_signal.emit()
+        self.done_signal.emit()
+
     def done(self):
+        self.mod_path_entry.setEnabled(True)
+        self.patch_path_entry.setEnabled(True)
+        self.chain_widget.setEnabled(True)
+        # self.toggle_chain_button.setEnabled(True)  # WIP
         self.patch_button.setText("Patch!")
         self.patch_button.clicked.disconnect(self.cancel_patcher)
         self.patch_button.clicked.connect(self.run_patcher)
@@ -339,6 +441,10 @@ here</a>.\
                 shutil.rmtree(self.patcher.tmpdir)
                 self.log.info("Cleaned up temporary folder.")
 
+        self.mod_path_entry.setEnabled(True)
+        self.patch_path_entry.setEnabled(True)
+        self.chain_widget.setEnabled(True)
+        self.toggle_chain_button.setEnabled(True)
         self.patch_button.setText("Patch!")
         self.patch_button.clicked.disconnect(self.cancel_patcher)
         self.patch_button.clicked.connect(self.run_patcher)

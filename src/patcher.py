@@ -98,7 +98,7 @@ File '{shape_path}' does not exist!"
 
                 self.ffdec_interface.replace_shapes(shapes)
 
-    def copy_files(self):
+    def copy_files(self, ignore_bsa: bool):
         """
         Copies all required files to patch to the temp folder.
         """
@@ -108,7 +108,11 @@ File '{shape_path}' does not exist!"
         self.swf_files = {}
 
         for file in self.patch_data.keys():
-            bsa_file, mod_file = utils.parse_path(file)
+            if ignore_bsa:
+                _, mod_file = utils.parse_path(file)
+                bsa_file = None
+            else:
+                bsa_file, mod_file = utils.parse_path(file)
             mod_file = mod_file.with_suffix(".swf")
 
             if bsa_file:
@@ -288,7 +292,7 @@ File '{shape_path}' does not exist!"
             shutil.copyfile(file, dest)
         self.log.info(f"Output written to '{output_path}'.")
 
-    def patch(self):
+    def patch(self, ignore_bsa: bool = False, repack_bsas: bool = False):
         """
         Patches mod through following process:
             1. Copy original mod to a temp folder.
@@ -309,8 +313,8 @@ File '{shape_path}' does not exist!"
             self.log.debug(f"Created temporary folder at '{self.tmpdir}'.")
 
             # 1. Copy original mod files to patch
-            # 1.1 and extract BSAs if required
-            self.copy_files()
+            # and extract BSAs if required
+            self.copy_files(ignore_bsa)
 
             # 2. Patch shapes
             self.patch_shapes()

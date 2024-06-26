@@ -236,3 +236,19 @@ def beautify_xml(xml_string: str):
     ]
 
     return "".join(lines)
+
+
+def get_list_widget_items(list_widget: qtw.QListWidget):
+    """
+    Returns items from <list_widget> in order.
+    """
+
+    return [list_widget.item(x).text() for x in range(list_widget.count())]
+
+
+def get_combobox_items(combo_box: qtw.QComboBox):
+    """
+    Returns items from <combo_box> in order.
+    """
+
+    return [combo_box.itemText(x) for x in range(combo_box.count())]
