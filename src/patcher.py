@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import jstyleson as json
-import bsa_extractor as bsa
+import bsa_interface as bsa
 
 import ffdec
 import utils
@@ -126,8 +126,8 @@ File '{shape_path}' does not exist!"
                 os.makedirs(dest_path.parent, exist_ok=True)
                 shutil.copyfile(origin_path, dest_path)
             else:
-                bsa_archive = bsa.BSAArchive.parse_file(str(bsa_file))
-                bsa_archive.extract_file(to_dir=self.tmpdir, file=mod_file)
+                bsa_archive = bsa.BSAArchive(bsa_file)
+                bsa_archive.extract_file(mod_file, self.tmpdir)
             self.swf_files[file] = dest_path
 
         self.log.info("Mod files ready to patch.")
@@ -279,29 +279,83 @@ File '{shape_path}' does not exist!"
 
         return xml_element
 
-    
-    def finish_patching(self):
+    def repack_bsas(self, output_folder: Path):
+        """
+        Repacks BSAs with patched files at `output_folder`.
+        """
+
+        bsa_archives: dict[Path, list[Path]] = {}
+        """
+        Stores path to BSAs with list of patched files.
+        """
+
+        os.makedirs(output_folder, exist_ok=True)
+
+        for file in self.patch_data.keys():
+            bsa_file, mod_file = utils.parse_path(file)
+            patched_file = mod_file.with_suffix(".swf")
+
+            if bsa_file:
+                bsa_file = self.original_mod_path / bsa_file.name
+
+                if bsa_file in bsa_archives:
+                    bsa_archives[bsa_file].append(patched_file)
+                else:
+                    bsa_archives[bsa_file] = [patched_file]
+            else:
+                src = self.tmpdir / file
+                dst = output_folder / file
+
+                if dst.is_file():
+                    os.remove(dst)
+                shutil.copyfile(dst)
+
+        for bsa_file, files in bsa_archives.items():
+            self.log.info(f"Repacking {bsa_file.name!r} with patched files...")
+
+            # 1. Extract BSA to a new temp folder
+            bsa_archive = bsa.BSAArchive(bsa_file)
+            os.mkdir(self.tmpdir / bsa_file.name)
+            bsa_archive.extract(self.tmpdir / bsa_file.name)
+
+            # 2. Copy patched files over original files
+            for file in files:
+                src = self.tmpdir / file
+                dst = self.tmpdir / bsa_file.name / file
+
+                if dst.is_file():
+                    os.remove(dst)
+                shutil.copyfile(src, dst)
+
+            # 3. Repack BSA at output folder
+            bsa.BSAArchive.create_archive(
+                self.tmpdir / bsa_file.name, output_folder / bsa_file.name
+            )
+
+    def finish_patching(self, repack_bsas: bool):
         output_path = Path(os.getcwd()).parent
 
-        # os.makedirs(output_path.parent, exist_ok=True)
-        for file in self.swf_files.values():
-            dest = output_path / file.relative_to(self.tmpdir)
-            os.makedirs(dest.parent, exist_ok=True)
-            if dest.is_file():
-                os.remove(dest)
-            shutil.copyfile(file, dest)
+        if repack_bsas:
+            self.repack_bsas(output_path)
+        else:
+            for file in self.swf_files.values():
+                dest = output_path / file.relative_to(self.tmpdir)
+                os.makedirs(dest.parent, exist_ok=True)
+                if dest.is_file():
+                    os.remove(dest)
+                shutil.copyfile(file, dest)
         self.log.info(f"Output written to '{output_path}'.")
 
     def patch(self, ignore_bsa: bool = False, repack_bsas: bool = False):
         """
         Patches mod through following process:
-            1. Copy original mod to a temp folder.
-            1.1 Extract BSAs if required.
-            2. Patch shapes.
-            3. Convert SWFs to XMLs.
-            4. Patch XMLs.
-            5. Convert XMLs back to SWFs.
-            6. Copy patched mod back to current directory.
+
+        1. Copy original mod to a temp folder (Extract BSAs if required).
+        2. Patch shapes.
+        3. Convert SWFs to XMLs.
+        4. Patch XMLs.
+        5. Convert XMLs back to SWFs.
+        6. Copy patched mod back to current directory (Repack BSAs if enabled).
         """
 
         self.log.info("Patching mod...")
@@ -329,8 +383,9 @@ File '{shape_path}' does not exist!"
             self.convert_xmls2swfs()
 
             # 6. Copy patched files back to current directory
-            self.finish_patching()
-        
+            # and repack BSas if enabled
+            self.finish_patching(repack_bsas)
+
         # Send done signal to app
         self.log.info("Patch complete!")
         self.app.done_signal.emit()

@@ -120,7 +120,12 @@ class MainApp(qtw.QApplication):
                 folder = os.path.normpath(folder)
                 self.mod_path_entry.setCurrentText(folder)
         mod_path_button.clicked.connect(browse_mod_path)
-        self.conf_layout.addWidget(mod_path_button, 1, 2)
+        mod_path_layout.addWidget(mod_path_button)
+
+        self.repack_checkbox = qtw.QCheckBox(
+            "Repack BSA(s) (Warning! The original BSA(s) get(s) overwritten!) (Experimental, use at your own risk!)"
+        )
+        self.main_layout.addWidget(self.repack_checkbox)
 
         self.protocol_widget = qtw.QTextEdit()
         self.protocol_widget.setReadOnly(True)
