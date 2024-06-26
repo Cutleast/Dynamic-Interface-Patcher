@@ -3,18 +3,19 @@ Name: Dynamic Interface Patcher (DIP)
 Author: Cutleast
 License: Attribution-NonCommercial-NoDerivatives 4.0 International
 Python Version: 3.11.2
-Qt Version: 6.5.1
+Qt Version: 6.5.3
 """
 
 import argparse
 import logging
 import os
 import shutil
-import pyperclip as clipboard
 import sys
 import time
 from pathlib import Path
 
+import pyperclip as clipboard
+import qtawesome as qta
 import qtpy.QtCore as qtc
 import qtpy.QtGui as qtg
 import qtpy.QtWidgets as qtw
@@ -41,11 +42,26 @@ class MainApp(qtw.QApplication):
         # Parse commandline arguments
         parser = argparse.ArgumentParser(
             prog=Path(sys.executable).name,
-            description=f"{self.name} v{self.version} (c) Cutleast"
+            description=f"{self.name} v{self.version} (c) Cutleast",
         )
-        parser.add_argument("-d", "--debug", help="Enables debug mode so that debug files get outputted.", action='store_true')
-        parser.add_argument("patchpath", nargs='?', default='', help="Path to patch that gets automatically run. An original mod path must also be given!")
-        parser.add_argument("originalpath", nargs='?', default='', help="Path to original mod that gets automatically patched. A patch path must also be given!")
+        parser.add_argument(
+            "-d",
+            "--debug",
+            help="Enables debug mode so that debug files get outputted.",
+            action="store_true",
+        )
+        parser.add_argument(
+            "patchpath",
+            nargs="?",
+            default="",
+            help="Path to patch that gets automatically run. An original mod path must also be given!",
+        )
+        parser.add_argument(
+            "originalpath",
+            nargs="?",
+            default="",
+            help="Path to original mod that gets automatically patched. A patch path must also be given!",
+        )
         self.cmd_args = parser.parse_args()
 
         self.log = logging.getLogger(self.__repr__())
@@ -53,10 +69,7 @@ class MainApp(qtw.QApplication):
         log_format += "[%(levelname)s]"
         log_format += "[%(name)s.%(funcName)s]: "
         log_format += "%(message)s"
-        self.log_format = logging.Formatter(
-            log_format,
-            datefmt="%d.%m.%Y %H:%M:%S"
-        )
+        self.log_format = logging.Formatter(log_format, datefmt="%d.%m.%Y %H:%M:%S")
         self.std_handler = utils.StdoutHandler(self)
         self.log_str = logging.StreamHandler(self.std_handler)
         self.log_str.setFormatter(self.log_format)
@@ -90,7 +103,11 @@ class MainApp(qtw.QApplication):
         def browse_patch_path():
             file_dialog = qtw.QFileDialog(self.root)
             file_dialog.setWindowTitle("Browse DIP Patch...")
-            path = Path(self.patch_path_entry.currentText()) if self.patch_path_entry.currentText() else Path(".")
+            path = (
+                Path(self.patch_path_entry.currentText())
+                if self.patch_path_entry.currentText()
+                else Path(".")
+            )
             path = path.resolve()
             file_dialog.setDirectory(str(path.parent))
             file_dialog.setFileMode(qtw.QFileDialog.FileMode.Directory)
@@ -98,20 +115,32 @@ class MainApp(qtw.QApplication):
                 folder = file_dialog.selectedFiles()[0]
                 folder = os.path.normpath(folder)
                 self.patch_path_entry.setCurrentText(folder)
-        patch_path_button.clicked.connect(browse_patch_path)
-        self.conf_layout.addWidget(patch_path_button, 0, 2)
 
+        patch_path_button.clicked.connect(browse_patch_path)
+        patch_path_layout.addWidget(patch_path_button)
+        patch_path_layout.addSpacing(8)
+
+        mod_path_layout = qtw.QHBoxLayout()
+        self.main_layout.addLayout(mod_path_layout)
         mod_path_label = qtw.QLabel("Enter Path to patched Mod:")
-        self.conf_layout.addWidget(mod_path_label, 1, 0)
+        mod_path_layout.addWidget(mod_path_label)
         self.mod_path_entry = qtw.QComboBox()
+        self.mod_path_entry.setSizePolicy(
+            qtw.QSizePolicy.Policy.Expanding, qtw.QSizePolicy.Policy.Preferred
+        )
         self.mod_path_entry.setEditable(True)
-        self.conf_layout.addWidget(self.mod_path_entry, 1, 1)
-        mod_path_button = qtw.QPushButton("Browse...")
+        mod_path_layout.addWidget(self.mod_path_entry)
+        mod_path_button = qtw.QPushButton()
+        mod_path_button.setIcon(qta.icon("fa.folder-open", color="#ffffff"))
 
         def browse_mod_path():
             file_dialog = qtw.QFileDialog(self.root)
             file_dialog.setWindowTitle("Browse patched Mod...")
-            path = Path(self.mod_path_entry.currentText()) if self.mod_path_entry.currentText() else Path(".")
+            path = (
+                Path(self.mod_path_entry.currentText())
+                if self.mod_path_entry.currentText()
+                else Path(".")
+            )
             path = path.resolve()
             file_dialog.setDirectory(str(path.parent))
             file_dialog.setFileMode(qtw.QFileDialog.FileMode.Directory)
@@ -119,6 +148,7 @@ class MainApp(qtw.QApplication):
                 folder = file_dialog.selectedFiles()[0]
                 folder = os.path.normpath(folder)
                 self.mod_path_entry.setCurrentText(folder)
+
         mod_path_button.clicked.connect(browse_mod_path)
         mod_path_layout.addWidget(mod_path_button)
 
@@ -139,11 +169,12 @@ class MainApp(qtw.QApplication):
         self.patch_button.clicked.connect(self.run_patcher)
         cmd_layout.addWidget(self.patch_button)
 
-        copy_log_button = qtw.QPushButton("Copy Log")
-        copy_log_button.setFixedWidth(120)
-        copy_log_button.clicked.connect(lambda: (
-            clipboard.copy(self.protocol_widget.toPlainText())
-        ))
+        copy_log_button = qtw.QPushButton()
+        copy_log_button.setIcon(qta.icon("mdi6.content-copy", color="#ffffff"))
+        copy_log_button.setToolTip("Copy Log to Clipboard")
+        copy_log_button.clicked.connect(
+            lambda: (clipboard.copy(self.protocol_widget.toPlainText()))
+        )
         cmd_layout.addWidget(copy_log_button)
 
         docs_label = qtw.QLabel(
@@ -257,7 +288,9 @@ here</a>.\
         self.root.show()
         utils.apply_dark_title_bar(self.root)
 
-        if (patch_path := self.cmd_args.patchpath) and (original_path := self.cmd_args.originalpath):
+        if (patch_path := self.cmd_args.patchpath) and (
+            original_path := self.cmd_args.originalpath
+        ):
             self.log.info("Patching automatically...")
             self.patch_path_entry.setCurrentText(patch_path)
             self.mod_path_entry.setCurrentText(original_path)
@@ -288,26 +321,19 @@ here</a>.\
                 "Java could not be found on PATH.\nMake sure that Java 64-bit is installed and try again!"
             )
             message_box.setStandardButtons(
-                qtw.QMessageBox.StandardButton.No
-                | qtw.QMessageBox.StandardButton.Yes
+                qtw.QMessageBox.StandardButton.No | qtw.QMessageBox.StandardButton.Yes
             )
-            message_box.setDefaultButton(
-                qtw.QMessageBox.StandardButton.Yes
+            message_box.setDefaultButton(qtw.QMessageBox.StandardButton.Yes)
+            message_box.button(qtw.QMessageBox.StandardButton.Yes).setText(
+                "Open Java Website"
             )
-            message_box.button(
-                qtw.QMessageBox.StandardButton.Yes
-            ).setText("Open Java Website")
-            message_box.button(
-                qtw.QMessageBox.StandardButton.No
-            ).setText("Exit")
+            message_box.button(qtw.QMessageBox.StandardButton.No).setText("Exit")
             choice = message_box.exec()
 
             # Handle the user's choice
             if choice == qtw.QMessageBox.StandardButton.Yes:
                 # Open nexus mods file page
-                os.startfile(
-                    "https://www.java.com/en/download/"
-                )
+                os.startfile("https://www.java.com/en/download/")
 
             sys.exit()
 
@@ -316,7 +342,7 @@ here</a>.\
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         self.log.critical(
             "An uncaught exception occured:",
-            exc_info=(exc_type, exc_value, exc_traceback)
+            exc_info=(exc_type, exc_value, exc_traceback),
         )
 
     def handle_stdout(self, text):
@@ -399,7 +425,9 @@ here</a>.\
         self.patch_button.clicked.disconnect(self.cancel_patcher)
         self.patch_button.clicked.connect(self.run_patcher)
 
-        self.log.info(f"Patching done in {(time.time() - self.start_time):.3f} second(s).")
+        self.log.info(
+            f"Patching done in {(time.time() - self.start_time):.3f} second(s)."
+        )
 
         if self.cmd_args.patchpath and self.cmd_args.originalpath:
             self.exit()
@@ -408,23 +436,16 @@ here</a>.\
         message_box.setWindowIcon(self.root.windowIcon())
         message_box.setStyleSheet(self.root.styleSheet())
         utils.apply_dark_title_bar(message_box)
-        message_box.setWindowTitle(f"Patch completed in {(time.time() - self.start_time):.3f} second(s)")
-        message_box.setText(
-            "Patch successfully completed"
+        message_box.setWindowTitle(
+            f"Patch completed in {(time.time() - self.start_time):.3f} second(s)"
         )
+        message_box.setText("Patch successfully completed")
         message_box.setStandardButtons(
-            qtw.QMessageBox.StandardButton.No
-            | qtw.QMessageBox.StandardButton.Yes
+            qtw.QMessageBox.StandardButton.No | qtw.QMessageBox.StandardButton.Yes
         )
-        message_box.setDefaultButton(
-            qtw.QMessageBox.StandardButton.Yes
-        )
-        message_box.button(
-            qtw.QMessageBox.StandardButton.Yes
-        ).setText("Close DIP")
-        message_box.button(
-            qtw.QMessageBox.StandardButton.No
-        ).setText("Ok")
+        message_box.setDefaultButton(qtw.QMessageBox.StandardButton.Yes)
+        message_box.button(qtw.QMessageBox.StandardButton.Yes).setText("Close DIP")
+        message_box.button(qtw.QMessageBox.StandardButton.No).setText("Ok")
         choice = message_box.exec()
 
         # Handle the user's choice
@@ -438,7 +459,9 @@ here</a>.\
         if self.patcher.ffdec_interface is not None:
             if self.patcher.ffdec_interface.pid is not None:
                 utils.kill_child_process(self.patcher.ffdec_interface.pid)
-                self.log.info(f"Killed FFDec with pid {self.patcher.ffdec_interface.pid}.")
+                self.log.info(
+                    f"Killed FFDec with pid {self.patcher.ffdec_interface.pid}."
+                )
                 self.patcher.ffdec_interface.pid = None
 
         if self.patcher.tmpdir is not None:
