@@ -29,7 +29,7 @@ class MainApp(qtw.QApplication):
     """
 
     name = "Dynamic Interface Patcher"
-    version = "1.0.3"
+    version = "2.0.0-alpha"
 
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
