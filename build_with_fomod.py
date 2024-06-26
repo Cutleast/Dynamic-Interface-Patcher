@@ -15,6 +15,7 @@ APPNAME="Dynamic Interface Patcher"
 VERSION="2.0.0"
 AUTHOR="Cutleast"
 LICENSE="Attribution-NonCommercial-NoDerivatives 4.0 International"
+CONSOLE_MODE = "attach"  # "attach": Attaches to console it was started with (if any), "force": starts own console window, "disable": disables console completely
 UNUSED_FILES = [
     DIST_FOLDER / "qt6datavisualization.dll",
     DIST_FOLDER / "qt6network.dll",
@@ -28,7 +29,7 @@ print("Building with nuitka...")
 cmd = f'nuitka \
 --msvc="latest" \
 --standalone \
---disable-console \
+--windows-console-mode={CONSOLE_MODE} \
 --include-data-dir="./src/assets=./assets" \
 --enable-plugin=pyside6 \
 --remove-output \
