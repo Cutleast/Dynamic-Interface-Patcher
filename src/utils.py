@@ -6,13 +6,13 @@ Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
 """
 
 import ctypes
-import psutil
-import sys
 import subprocess
+import sys
 import xml.dom.minidom
-from typing import Callable
 from pathlib import Path
+from typing import Callable
 
+import psutil
 import qtpy.QtCore as qtc
 import qtpy.QtGui as qtg
 import qtpy.QtWidgets as qtw
@@ -78,12 +78,15 @@ class StdoutHandler(qtc.QObject):
 def hex_to_rgb(value: str):
     """
     Converts hexadecimal color values
-    to a tuple containing the values in rgb.    
+    to a tuple containing the values in rgb.
     """
 
-    value = value.lstrip('#')
+    value = value.lstrip("#")
     length = len(value)
-    return tuple(int(value[i:i + length // 3], 16) for i in range(0, length, length // 3))
+    return tuple(
+        int(value[i : i + length // 3], 16) for i in range(0, length, length // 3)
+    )
+
 
 def lower_dict(nested_dict: dict):
     new_dict = {}
@@ -97,6 +100,7 @@ def lower_dict(nested_dict: dict):
             new_dict[key] = value
 
     return new_dict
+
 
 def apply_dark_title_bar(widget: qtw.QWidget):
     """
@@ -115,21 +119,20 @@ def apply_dark_title_bar(widget: qtw.QWidget):
     value = 2
     value = ctypes.c_int(value)
     set_window_attribute(
-        hwnd,
-        rendering_policy,
-        ctypes.byref(value),
-        ctypes.sizeof(value)
+        hwnd, rendering_policy, ctypes.byref(value), ctypes.sizeof(value)
     )
+
 
 def kill_child_process(parent_pid: int):
     """
-    Kills process with <parent_pid> and all its children.    
+    Kills process with <parent_pid> and all its children.
     """
 
     parent = psutil.Process(parent_pid)
     for child in parent.children(recursive=True):
         child.kill()
     parent.kill()
+
 
 def check_java():
     """
@@ -142,15 +145,16 @@ def check_java():
             shell=True,
             stdout=subprocess.DEVNULL,
             stdin=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
         )
         return True
     except subprocess.CalledProcessError:
         return False
 
+
 def parse_path(path: Path):
     """
-    Parses path in returns tuple with
+    Parses path and returns tuple with
     two components:
     bsa path and file path
 
@@ -182,6 +186,7 @@ def parse_path(path: Path):
 
     return (bsa_path, file_path)
 
+
 def process_patch_data(patch_data: dict):
     result: list[dict[str, str | dict]] = []
 
@@ -209,10 +214,7 @@ def process_patch_data(patch_data: dict):
                         cur_changes[attribute] = value
 
                     if cur_filter and cur_changes:
-                        cur_result = {
-                            "filter": cur_filter,
-                            "changes": cur_changes
-                        }
+                        cur_result = {"filter": cur_filter, "changes": cur_changes}
                 else:
                     if child_result := process_data(value, cur_filter + f"/{key}"):
                         result.append(child_result)
@@ -224,16 +226,13 @@ def process_patch_data(patch_data: dict):
 
     return result
 
+
 def beautify_xml(xml_string: str):
     dom = xml.dom.minidom.parseString(xml_string)
     pretty_xml_as_string = dom.toprettyxml()
 
     lines = pretty_xml_as_string.splitlines()
-    lines = [
-        line + "\n"
-        for line in lines
-        if line.strip()
-    ]
+    lines = [line + "\n" for line in lines if line.strip()]
 
     return "".join(lines)
 

@@ -80,8 +80,7 @@ File '{shape_path}' does not exist!"
                     continue
 
                 shape_ids: list[int] = [
-                    int(shape_id)
-                    for shape_id in shape_data["id"].split(",")
+                    int(shape_id) for shape_id in shape_data["id"].split(",")
                 ]
 
                 if shape_path in shapes:
@@ -153,7 +152,7 @@ File '{shape_path}' does not exist!"
                 self.ffdec_interface = ffdec.FFDec(swf_file, self.app)
             else:
                 self.ffdec_interface.swf_path = swf_file
-            
+
             self.ffdec_interface.xml2swf(xml_file)
 
     def patch_xmls(self):
@@ -187,7 +186,9 @@ File '{shape_path}' does not exist!"
                 elements = xml_root.findall(filter)
                 if not elements:
                     parent_filter, new_element_tag = filter.rsplit("/", 1)
-                    self.log.debug(f"Creating new '{new_element_tag}' element at '{parent_filter}'...")
+                    self.log.debug(
+                        f"Creating new '{new_element_tag}' element at '{parent_filter}'..."
+                    )
                     new_element = ET.Element(new_element_tag)
                     new_element.attrib = changes
                     parents = xml_root.findall(parent_filter)
@@ -209,9 +210,11 @@ File '{shape_path}' does not exist!"
             if self.app.debug:
                 _debug_xml = (Path(".") / f"{xml_file.name}").resolve()
                 with open(_debug_xml, "w", encoding="utf8") as file:
-                    file.write(utils.beautify_xml(
-                        ET.tostring(xml_data.getroot(), encoding="utf8")
-                    ))
+                    file.write(
+                        utils.beautify_xml(
+                            ET.tostring(xml_data.getroot(), encoding="utf8")
+                        )
+                    )
                 self.log.debug(f"Debug written to '{_debug_xml}'.")
 
     @staticmethod
@@ -270,7 +273,7 @@ File '{shape_path}' does not exist!"
 
                 for frame_child in frame.findall("./subTags/"):
                     child.append(frame_child)
-                
+
                 frame_tag = ET.Element("item")
                 frame_tag.set("type", "ShowFrameTag")
                 child.append(frame_tag)
