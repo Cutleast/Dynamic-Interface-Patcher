@@ -32,6 +32,7 @@ class MainApp(qtw.QApplication):
     name = "Dynamic Interface Patcher"
     version = "2.0.0-alpha"
 
+    incr_progress_signal = qtc.Signal()
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
     start_time: int = None
@@ -74,31 +75,50 @@ class MainApp(qtw.QApplication):
         self.log_str = logging.StreamHandler(self.std_handler)
         self.log_str.setFormatter(self.log_format)
         self.log.addHandler(self.log_str)
-        self.log_level = 10 # Debug level
+        self.log_level = 10  # Debug level
         self.log.setLevel(self.log_level)
         self._excepthook = sys.excepthook
         sys.excepthook = self.handle_exception
 
         self.root = qtw.QWidget()
+        self.root.setObjectName("root")
         self.root.setWindowTitle(f"{self.name} v{self.version}")
         self.root.setStyleSheet((Path(".") / "assets" / "style.qss").read_text())
-        self.root.setWindowIcon(qtg.QIcon("./assets/titlebar_icon.ico"))
-        self.root.setMinimumWidth(1000)
-        self.root.setMinimumHeight(500)
+        self.root.setWindowIcon(qtg.QIcon("./assets/icon.ico"))
+        self.root.setMinimumWidth(1200)
+        self.root.setMinimumHeight(600)
 
-        self.layout = qtw.QVBoxLayout()
-        self.root.setLayout(self.layout)
+        # Fix link color
+        palette = self.palette()
+        palette.setColor(palette.ColorRole.Link, qtg.QColor("#4994e0"))
+        self.setPalette(palette)
 
-        self.conf_layout = qtw.QGridLayout()
-        self.conf_layout.setColumnStretch(1, 1)
-        self.layout.addLayout(self.conf_layout)
+        layout = qtw.QVBoxLayout()
+        layout.setContentsMargins(0, 15, 0, 0)
+        self.root.setLayout(layout)
+        self.splitter = qtw.QSplitter()
+        self.splitter.setChildrenCollapsible(False)
 
+        self.main_widget = qtw.QWidget()
+        self.main_widget.setObjectName("transparent")
+        self.splitter.addWidget(self.main_widget)
+        self.main_layout = qtw.QVBoxLayout()
+        self.main_widget.setLayout(self.main_layout)
+
+        patch_path_layout = qtw.QHBoxLayout()
+        patch_path_layout.addSpacing(8)
+        layout.addLayout(patch_path_layout)
         patch_path_label = qtw.QLabel("Enter Path to DIP Patch:")
-        self.conf_layout.addWidget(patch_path_label, 0, 0)
+        patch_path_layout.addWidget(patch_path_label)
+        patch_path_layout.addSpacing(20)
         self.patch_path_entry = qtw.QComboBox()
+        self.patch_path_entry.setSizePolicy(
+            qtw.QSizePolicy.Policy.Expanding, qtw.QSizePolicy.Policy.Preferred
+        )
         self.patch_path_entry.setEditable(True)
-        self.conf_layout.addWidget(self.patch_path_entry, 0, 1)
-        patch_path_button = qtw.QPushButton("Browse...")
+        patch_path_layout.addWidget(self.patch_path_entry)
+        patch_path_button = qtw.QPushButton()
+        patch_path_button.setIcon(qta.icon("fa.folder-open", color="#ffffff"))
 
         def browse_patch_path():
             file_dialog = qtw.QFileDialog(self.root)
@@ -160,12 +180,27 @@ class MainApp(qtw.QApplication):
         self.protocol_widget = qtw.QTextEdit()
         self.protocol_widget.setReadOnly(True)
         self.protocol_widget.setObjectName("protocol")
-        self.layout.addWidget(self.protocol_widget, 1)
+        self.main_layout.addWidget(self.protocol_widget, 1)
+
+        self.progress_bar = qtw.QProgressBar()
+        self.progress_bar.setRange(0, 1)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setFixedHeight(4)
+
+        def incr_progress():
+            self.progress_bar.setValue(self.progress_bar.value() + 1)
+
+        self.incr_progress_signal.connect(incr_progress)
+        self.main_layout.addWidget(self.progress_bar)
 
         cmd_layout = qtw.QHBoxLayout()
-        self.layout.addLayout(cmd_layout)
+        self.main_layout.addLayout(cmd_layout)
 
         self.patch_button = qtw.QPushButton("Patch!")
+        self.patch_button.setObjectName("accent_button")
+        self.patch_button.setSizePolicy(
+            qtw.QSizePolicy.Policy.Expanding, qtw.QSizePolicy.Policy.Preferred
+        )
         self.patch_button.clicked.connect(self.run_patcher)
         cmd_layout.addWidget(self.patch_button)
 
@@ -176,6 +211,14 @@ class MainApp(qtw.QApplication):
             lambda: (clipboard.copy(self.protocol_widget.toPlainText()))
         )
         cmd_layout.addWidget(copy_log_button)
+
+        self.toggle_chain_button = qtw.QPushButton()
+        self.toggle_chain_button.setIcon(
+            qta.icon("fa.angle-double-left", color="#ffffff")
+        )
+        self.toggle_chain_button.setToolTip("Toggle Chain Mode")
+        self.toggle_chain_button.setDisabled(True)  # WIP
+        cmd_layout.addWidget(self.toggle_chain_button)
 
         docs_label = qtw.QLabel(
             "\
@@ -188,7 +231,7 @@ here</a>.\
         docs_label.setTextFormat(qtc.Qt.TextFormat.RichText)
         docs_label.setAlignment(qtc.Qt.AlignmentFlag.AlignRight)
         docs_label.setOpenExternalLinks(True)
-        self.layout.addWidget(docs_label)
+        self.main_layout.addWidget(docs_label)
 
         # Chain patching list
         self.chain_widget = qtw.QWidget()
@@ -422,6 +465,8 @@ here</a>.\
         self.chain_widget.setEnabled(True)
         # self.toggle_chain_button.setEnabled(True)  # WIP
         self.patch_button.setText("Patch!")
+        self.progress_bar.setRange(0, 1)
+        self.progress_bar.setValue(1)
         self.patch_button.clicked.disconnect(self.cancel_patcher)
         self.patch_button.clicked.connect(self.run_patcher)
 
@@ -476,6 +521,7 @@ here</a>.\
         self.patch_button.setText("Patch!")
         self.patch_button.clicked.disconnect(self.cancel_patcher)
         self.patch_button.clicked.connect(self.run_patcher)
+        self.progress_bar.setRange(0, 1)
         self.log.warning("Patch incomplete!")
 
 
