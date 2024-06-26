@@ -1,8 +1,9 @@
-bethesda-structs
 jstyleson
 Nuitka
 ordered-set
 psutil
 pyperclip
-PySide6
+qtawesome
+PySide6==6.6.1
 QtPy
+virtual_glob
