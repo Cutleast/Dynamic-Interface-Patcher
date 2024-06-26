@@ -8,3 +8,4 @@ src/*.xml
 src/*.json
 interface
 DIP_with_fomod
+*.bsa
