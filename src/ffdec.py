@@ -92,7 +92,7 @@ class FFDec:
             stderr=subprocess.STDOUT,
             text=True,
             encoding="utf8",
-            errors="ignore"
+            errors="ignore",
         ) as process:
             self.pid = process.pid
             for line in process.stdout:
@@ -103,7 +103,9 @@ class FFDec:
         if process.returncode:
             self.log.error(f"FFDec Command:\n{cmd}")
             self.log.error(f"FFDec Output:\n{output}")
-            raise errors.FFDecError("Failed to execute FFDec command! Check output above!")
+            raise errors.FFDecError(
+                "Failed to execute FFDec command! Check output above!"
+            )
 
     def replace_shapes(self, shapes: dict[Path, list[int]]):
         """
@@ -119,10 +121,14 @@ class FFDec:
         for shape, indexes in shapes.items():
             shape = shape.resolve()
             if not shape.is_file():
-                self.log.error(f"Failed to patch shape {shape.name}: File does not exist!")
+                self.log.error(
+                    f"Failed to patch shape {shape.name}: File does not exist!"
+                )
                 continue
-            if shape.suffix not in  [".svg", ".png", ".jpg", ".jpeg"]:
-                self.log.warning(f"File type '{shape.suffix}' ({shape.name}) is not supported or tested and may lead to issues!")
+            if shape.suffix not in [".svg", ".png", ".jpg", ".jpeg"]:
+                self.log.warning(
+                    f"File type '{shape.suffix}' ({shape.name}) is not supported or tested and may lead to issues!"
+                )
 
             for index in indexes:
                 cmd = f"""{index}\n{shape}\n"""
@@ -153,7 +159,7 @@ class FFDec:
         self.log.info("Converted to XML.")
 
         return out_path
-    
+
     def xml2swf(self, xml_file: Path):
         """
         Converts XML file to SWF file and returns file path.
@@ -170,4 +176,3 @@ class FFDec:
         self.log.info("Converted to SWF.")
 
         return out_path
-
