@@ -330,8 +330,6 @@ here</a>.\
         self.log.info(f"Current working directory: {os.getcwd()}")
         self.log.info(f"Executable location: {Path(__file__).resolve().parent}")
 
-        self.check_java()
-
         self.log.debug("Program started!")
 
         self.root.show()
@@ -353,40 +351,6 @@ here</a>.\
 
     def __repr__(self):
         return "MainApp"
-
-    def check_java(self):
-        self.log.info("Checking for java installation...")
-
-        java_installed = utils.check_java()
-
-        if not java_installed:
-            self.log.critical("Java could not be found! Patching not possible!")
-            message_box = qtw.QMessageBox(self.root)
-            message_box.setWindowIcon(self.root.windowIcon())
-            message_box.setStyleSheet(self.root.styleSheet())
-            utils.apply_dark_title_bar(message_box)
-            message_box.setWindowTitle("No Java installed!")
-            message_box.setText(
-                "Java could not be found on PATH.\nMake sure that Java 64-bit is installed and try again!"
-            )
-            message_box.setStandardButtons(
-                qtw.QMessageBox.StandardButton.No | qtw.QMessageBox.StandardButton.Yes
-            )
-            message_box.setDefaultButton(qtw.QMessageBox.StandardButton.Yes)
-            message_box.button(qtw.QMessageBox.StandardButton.Yes).setText(
-                "Open Java Website"
-            )
-            message_box.button(qtw.QMessageBox.StandardButton.No).setText("Exit")
-            choice = message_box.exec()
-
-            # Handle the user's choice
-            if choice == qtw.QMessageBox.StandardButton.Yes:
-                # Open nexus mods file page
-                os.startfile("https://www.java.com/en/download/")
-
-            sys.exit()
-
-        self.log.info("Java found.")
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):
         self.log.critical(
