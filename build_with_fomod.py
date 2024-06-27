@@ -63,4 +63,7 @@ shutil.copytree(FOMOD_FOLDER, OUTPUT_FOLDER, dirs_exist_ok=True)
 print("Copying DIP...")
 shutil.copytree(DIST_FOLDER, OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
 
+print("Copying 7-zip files...")
+shutil.copytree("./7-zip", OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
+
 print("Done!")

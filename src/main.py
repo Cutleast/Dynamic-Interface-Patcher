@@ -13,7 +13,6 @@ import shutil
 import sys
 import tempfile
 import time
-import zipfile
 from pathlib import Path
 
 import pyperclip as clipboard
@@ -507,12 +506,11 @@ here</a>.\
         Downloads Java Runtime, extracts it and redirects FFDec to it.
         """
 
-        jre_path = self.cur_path / "assets" / "jre_binaries" / "jre.zip"
+        jre_path = self.cur_path / "assets" / "jre_binaries" / "jre.7z"
 
         tmp_folder = self.get_tmp_dir()
 
-        archive = zipfile.ZipFile(jre_path)
-        archive.extractall(tmp_folder)
+        utils.extract_archive(jre_path, tmp_folder)
 
         java_paths = list(tmp_folder.glob("*/bin/java.exe"))
 

@@ -5,6 +5,7 @@ Contains utility classes and functions.
 Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
 """
 
+import logging
 import ctypes
 import subprocess
 import sys
@@ -251,3 +252,30 @@ def get_combobox_items(combo_box: qtw.QComboBox):
     """
 
     return [combo_box.itemText(x) for x in range(combo_box.count())]
+
+
+def extract_archive(archive: Path, dest: Path):
+    """
+    Extracts all files from `archive` to `dest`.
+    """
+
+    log = logging.getLogger("ArchiveExtractor")
+
+    cmd = ["7z.exe", "x", str(archive), f"-o{dest}", "-aoa", "-y"]
+
+    with subprocess.Popen(
+        cmd,
+        shell=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf8",
+        errors="ignore",
+    ) as process:
+        output = process.stderr.read()
+
+    if process.returncode:
+        log.debug(f"Command: {cmd}")
+        log.error(output)
+        raise Exception("Unpacking command failed!")
