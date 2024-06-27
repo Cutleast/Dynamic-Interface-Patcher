@@ -31,7 +31,6 @@ class Patcher:
     original_mod_path: Path = None
     ffdec_interface: ffdec.FFDec = None
     patch_dir: Path = None
-    tmpdir: Path = None
     swf_files: dict[Path, Path] = None
 
     def __init__(self, app: MainApp, patch_path: Path, original_mod_path: Path):
@@ -120,13 +119,13 @@ File '{shape_path}' does not exist!"
                 mod_file = mod_file.relative_to(self.patch_path)
 
             origin_path = self.original_mod_path / mod_file
-            dest_path = self.tmpdir / mod_file
+            dest_path = self.app.get_tmp_dir() / mod_file
             if bsa_file is None:
                 os.makedirs(dest_path.parent, exist_ok=True)
                 shutil.copyfile(origin_path, dest_path)
             else:
                 bsa_archive = bsa.BSAArchive(bsa_file)
-                bsa_archive.extract_file(mod_file, self.tmpdir)
+                bsa_archive.extract_file(mod_file, self.app.get_tmp_dir())
             self.swf_files[file] = dest_path
 
         self.log.info("Mod files ready to patch.")
@@ -306,7 +305,7 @@ File '{shape_path}' does not exist!"
                 else:
                     bsa_archives[bsa_file] = [patched_file]
             else:
-                src = self.tmpdir / file
+                src = self.app.get_tmp_dir() / file
                 dst = output_folder / file
 
                 if dst.is_file():
@@ -318,13 +317,13 @@ File '{shape_path}' does not exist!"
 
             # 1. Extract BSA to a new temp folder
             bsa_archive = bsa.BSAArchive(bsa_file)
-            os.mkdir(self.tmpdir / bsa_file.name)
-            bsa_archive.extract(self.tmpdir / bsa_file.name)
+            os.mkdir(self.app.get_tmp_dir() / bsa_file.name)
+            bsa_archive.extract(self.app.get_tmp_dir() / bsa_file.name)
 
             # 2. Copy patched files over original files
             for file in files:
-                src = self.tmpdir / file
-                dst = self.tmpdir / bsa_file.name / file
+                src = self.app.get_tmp_dir() / file
+                dst = self.app.get_tmp_dir() / bsa_file.name / file
 
                 if dst.is_file():
                     os.remove(dst)
@@ -332,7 +331,7 @@ File '{shape_path}' does not exist!"
 
             # 3. Repack BSA at output folder
             bsa.BSAArchive.create_archive(
-                self.tmpdir / bsa_file.name, output_folder / bsa_file.name
+                self.app.get_tmp_dir() / bsa_file.name, output_folder / bsa_file.name
             )
 
     def finish_patching(self, repack_bsas: bool):
@@ -342,7 +341,7 @@ File '{shape_path}' does not exist!"
             self.repack_bsas(output_path)
         else:
             for file in self.swf_files.values():
-                dest = output_path / file.relative_to(self.tmpdir)
+                dest = output_path / file.relative_to(self.app.get_tmp_dir())
                 os.makedirs(dest.parent, exist_ok=True)
                 if dest.is_file():
                     os.remove(dest)
@@ -363,31 +362,28 @@ File '{shape_path}' does not exist!"
 
         self.log.info("Patching mod...")
 
-        # 0. Create Temp folder
-        with tmp.TemporaryDirectory(prefix="DIP_") as tmpdir:
-            self.tmpdir = Path(tmpdir).resolve()
+        # 0. Setup JRE
+        self.app.setup()
 
-            self.log.debug(f"Created temporary folder at '{self.tmpdir}'.")
+        # 1. Copy original mod files to patch
+        # and extract BSAs if required
+        self.copy_files(ignore_bsa)
 
-            # 1. Copy original mod files to patch
-            # and extract BSAs if required
-            self.copy_files(ignore_bsa)
+        # 2. Patch shapes
+        self.patch_shapes()
 
-            # 2. Patch shapes
-            self.patch_shapes()
+        # 3. Convert SWFs to XMLs
+        self.convert_swfs2xmls()
 
-            # 3. Convert SWFs to XMLs
-            self.convert_swfs2xmls()
+        # 4. Patch XMLs
+        self.patch_xmls()
 
-            # 4. Patch XMLs
-            self.patch_xmls()
+        # 5. Convert XMLs back to SWFs
+        self.convert_xmls2swfs()
 
-            # 5. Convert XMLs back to SWFs
-            self.convert_xmls2swfs()
-
-            # 6. Copy patched files back to current directory
-            # and repack BSas if enabled
-            self.finish_patching(repack_bsas)
+        # 6. Copy patched files back to current directory
+        # and repack BSas if enabled
+        self.finish_patching(repack_bsas)
 
         # Delete symlink
         self.ffdec_interface.del_symlink_path()

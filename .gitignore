@@ -9,3 +9,4 @@ src/*.json
 interface
 DIP_with_fomod
 *.bsa
+src/assets/ffdec/ffdec.bat

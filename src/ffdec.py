@@ -52,11 +52,11 @@ class FFDec:
                 os.unlink(symlink_path)
                 self.log.debug("Removed already existing symlink.")
 
-            os.symlink(self.app.patcher.tmpdir, symlink_path, target_is_directory=True)
+            os.symlink(self.app.get_tmp_dir(), symlink_path, target_is_directory=True)
             self.symlink_path = symlink_path
 
             self.log.debug(
-                f"Created symlink from {str(symlink_path)!r} to {str(self.app.patcher.tmpdir)!r}."
+                f"Created symlink from {str(symlink_path)!r} to {str(self.app.get_tmp_dir())!r}."
             )
 
         return self.symlink_path
@@ -80,7 +80,7 @@ class FFDec:
         cmd = f""""{self.bin_path}" {args}"""
 
         # Redirect to symlink
-        cmd = cmd.replace(str(self.app.patcher.tmpdir), str(self.get_symlink_path()))
+        cmd = cmd.replace(str(self.app.get_tmp_dir()), str(self.get_symlink_path()))
 
         output = ""
 

@@ -11,7 +11,9 @@ import logging
 import os
 import shutil
 import sys
+import tempfile
 import time
+import zipfile
 from pathlib import Path
 
 import pyperclip as clipboard
@@ -36,6 +38,10 @@ class MainApp(qtw.QApplication):
     patcher_thread: utils.Thread = None
     done_signal = qtc.Signal()
     start_time: int = None
+
+    cur_path = Path(os.getcwd())
+
+    tmp_dir: Path = None
 
     def __init__(self):
         super().__init__()
@@ -509,9 +515,10 @@ here</a>.\
                 )
                 self.patcher.ffdec_interface.pid = None
 
-        if self.patcher.tmpdir is not None:
-            if self.patcher.tmpdir.is_dir():
-                shutil.rmtree(self.patcher.tmpdir)
+        if self.tmp_dir is not None:
+            if self.tmp_dir.is_dir():
+                shutil.rmtree(self.tmp_dir)
+                self.tmp_dir = None
                 self.log.info("Cleaned up temporary folder.")
 
         self.mod_path_entry.setEnabled(True)
@@ -523,6 +530,51 @@ here</a>.\
         self.patch_button.clicked.connect(self.run_patcher)
         self.progress_bar.setRange(0, 1)
         self.log.warning("Patch incomplete!")
+
+    def get_tmp_dir(self):
+        if self.tmp_dir is None:
+            self.tmp_dir = Path(tempfile.mkdtemp(prefix="DIP_"))
+            self.log.debug(f"Created temporary directory at {str(self.tmp_dir)!r}.")
+
+        return self.tmp_dir
+
+    def setup(self):
+        """
+        Downloads Java Runtime, extracts it and redirects FFDec to it.
+        """
+
+        jre_path = self.cur_path / "assets" / "jre_binaries" / "jre.zip"
+
+        tmp_folder = self.get_tmp_dir()
+
+        archive = zipfile.ZipFile(jre_path)
+        archive.extractall(tmp_folder)
+
+        java_paths = list(tmp_folder.glob("*/bin/java.exe"))
+
+        if not java_paths:
+            raise Exception("Archive does not contain a valid java.exe!")
+
+        java_path = java_paths[0]
+
+        # Write jre_path in ffdec.bat
+        ffdec_bat_path = self.cur_path / "assets" / "ffdec" / "ffdec.bat"
+        orig_bat_path = ffdec_bat_path.with_stem("ffdec_orig")
+
+        text = orig_bat_path.read_text()
+        lines = text.splitlines()
+        last_line = lines[-1]
+
+        last_line = last_line.replace("java", f'"{java_path}"', 1)
+        lines[-1] = last_line
+
+        ffdec_bat_path.write_text("\n".join(lines))
+
+    def exec(self):
+        super().exec()
+
+        if self.tmp_dir:
+            shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":
