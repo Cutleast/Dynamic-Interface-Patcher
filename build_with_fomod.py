@@ -66,4 +66,11 @@ shutil.copytree(DIST_FOLDER, OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
 print("Copying 7-zip files...")
 shutil.copytree("./7-zip", OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
 
+print("Packing into 7-zip archive...")
+cmd = f'7-zip\\7z.exe \
+a \
+DIP_v{VERSION}.7z \
+{OUTPUT_FOLDER}'
+os.system(cmd)
+
 print("Done!")
