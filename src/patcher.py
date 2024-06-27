@@ -40,8 +40,6 @@ class Patcher:
         self.original_mod_path = original_mod_path
 
         self.log = logging.getLogger(self.__repr__())
-        self.log.addHandler(self.app.log_str)
-        self.log.setLevel(self.app.log.level)
 
         self.load_patch_data()
 

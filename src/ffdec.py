@@ -29,8 +29,6 @@ class FFDec:
         self.app = app
 
         self.log = logging.getLogger(self.__repr__())
-        self.log.addHandler(self.app.log_str)
-        self.log.setLevel(self.app.log.level)
 
         self.swf_path = swf_path
 

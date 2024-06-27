@@ -79,9 +79,11 @@ class MainApp(qtw.QApplication):
         self.std_handler = utils.StdoutHandler(self)
         self.log_str = logging.StreamHandler(self.std_handler)
         self.log_str.setFormatter(self.log_format)
-        self.log.addHandler(self.log_str)
         self.log_level = 10  # Debug level
         self.log.setLevel(self.log_level)
+        root_log = logging.getLogger()
+        root_log.addHandler(self.log_str)
+        root_log.setLevel(self.log_level)
         self._excepthook = sys.excepthook
         sys.excepthook = self.handle_exception
 
