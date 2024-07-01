@@ -92,8 +92,7 @@ class MainApp(qtw.QApplication):
         self.root.setWindowTitle(f"{self.name} v{self.version}")
         self.root.setStyleSheet((Path(".") / "assets" / "style.qss").read_text())
         self.root.setWindowIcon(qtg.QIcon("./assets/icon.ico"))
-        self.root.setMinimumWidth(1200)
-        self.root.setMinimumHeight(600)
+        self.root.resize(1000, 500)
 
         # Fix link color
         palette = self.palette()
@@ -115,9 +114,9 @@ class MainApp(qtw.QApplication):
         patch_path_layout = qtw.QHBoxLayout()
         patch_path_layout.addSpacing(8)
         layout.addLayout(patch_path_layout)
-        patch_path_label = qtw.QLabel("Enter Path to DIP Patch:")
+        patch_path_label = qtw.QLabel("Path to DIP Patch:")
+        patch_path_label.setFixedWidth(175)
         patch_path_layout.addWidget(patch_path_label)
-        patch_path_layout.addSpacing(20)
         self.patch_path_entry = qtw.QComboBox()
         self.patch_path_entry.setSizePolicy(
             qtw.QSizePolicy.Policy.Expanding, qtw.QSizePolicy.Policy.Preferred
@@ -149,7 +148,8 @@ class MainApp(qtw.QApplication):
 
         mod_path_layout = qtw.QHBoxLayout()
         self.main_layout.addLayout(mod_path_layout)
-        mod_path_label = qtw.QLabel("Enter Path to patched Mod:")
+        mod_path_label = qtw.QLabel("Path to Skyrim's Data folder:")
+        mod_path_label.setFixedWidth(175)
         mod_path_layout.addWidget(mod_path_label)
         self.mod_path_entry = qtw.QComboBox()
         self.mod_path_entry.setSizePolicy(
@@ -162,7 +162,7 @@ class MainApp(qtw.QApplication):
 
         def browse_mod_path():
             file_dialog = qtw.QFileDialog(self.root)
-            file_dialog.setWindowTitle("Browse patched Mod...")
+            file_dialog.setWindowTitle("Browse Data folder...")
             path = (
                 Path(self.mod_path_entry.currentText())
                 if self.mod_path_entry.currentText()
