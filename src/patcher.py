@@ -127,9 +127,14 @@ File '{shape_path}' does not exist!"
             if bsa_file is None:
                 os.makedirs(dest_path.parent, exist_ok=True)
                 shutil.copyfile(origin_path, dest_path)
-            else:
+            elif bsa_file.is_file():
                 bsa_archive = bsa.BSAArchive(bsa_file)
                 bsa_archive.extract_file(mod_file, self.app.get_tmp_dir())
+
+            # Skip missing BSA files
+            else:
+                continue
+
             self.swf_files[file] = dest_path
 
         self.log.info("Mod files ready to patch.")
