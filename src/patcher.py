@@ -8,13 +8,13 @@ Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
 import logging
 import os
 import shutil
-import tempfile as tmp
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import jstyleson as json
-import bsa_interface as bsa
 
+import bsa_interface as bsa
 import ffdec
 import utils
 from main import MainApp
@@ -323,8 +323,15 @@ File '{shape_path}' does not exist!"
                 src = self.app.get_tmp_dir() / file
                 dst = self.app.get_tmp_dir() / bsa_file.name / file
 
+                # Backup original file
                 if dst.is_file():
-                    os.remove(dst)
+                    os.rename(
+                        dst,
+                        dst.with_suffix(
+                            dst.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")
+                        ),
+                    )
+
                 shutil.copyfile(src, dst)
 
             # 3. Repack BSA at output folder
@@ -341,8 +348,16 @@ File '{shape_path}' does not exist!"
             for file in self.swf_files.values():
                 dest = output_path / file.relative_to(self.app.get_tmp_dir())
                 os.makedirs(dest.parent, exist_ok=True)
+
+                # Backup already existing file
                 if dest.is_file():
-                    os.remove(dest)
+                    os.rename(
+                        dest,
+                        dest.with_suffix(
+                            dest.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")
+                        ),
+                    )
+
                 shutil.copyfile(file, dest)
         self.log.info(f"Output written to '{output_path}'.")
 
