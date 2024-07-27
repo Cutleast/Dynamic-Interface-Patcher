@@ -103,7 +103,7 @@ File '{shape_path}' does not exist!"
 
         self.swf_files = {}
 
-        for file in self.patch_data.keys():
+        for file in list(self.patch_data.keys()):
             if ignore_bsa:
                 _, mod_file = utils.parse_path(file)
                 bsa_file = None
@@ -123,6 +123,7 @@ File '{shape_path}' does not exist!"
                 self.log.warning(
                     f"{str(origin_path)!r} does not exist! Skipped patch file."
                 )
+                self.patch_data.pop(file)  # Remove missing patch file from patch data
                 continue
 
             dest_path = self.app.get_tmp_dir() / mod_file
