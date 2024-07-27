@@ -1,5 +1,6 @@
 jstyleson
-Nuitka
+Nuitka  # has problems with AV
+cx_freeze  # seems to be fine with AV
 ordered-set
 psutil
 pyperclip
