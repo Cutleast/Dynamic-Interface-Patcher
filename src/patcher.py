@@ -319,7 +319,10 @@ File '{shape_path}' does not exist!"
             patched_file = mod_file.with_suffix(".swf")
 
             # Skip missing SWF files
-            if not patched_file.is_file():
+            if not (self.app.get_tmp_dir() / patched_file).is_file():
+                self.log.warning(
+                    f"Skipped missing patched file {str(self.app.get_tmp_dir() / patched_file)!r}."
+                )
                 continue
 
             if bsa_file:
@@ -333,9 +336,16 @@ File '{shape_path}' does not exist!"
                 src = self.app.get_tmp_dir() / file
                 dst = output_folder / file
 
+                # Backup original file
                 if dst.is_file():
-                    os.remove(dst)
-                shutil.copyfile(dst)
+                    os.rename(
+                        dst,
+                        dst.with_suffix(
+                            dst.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")
+                        ),
+                    )
+
+                shutil.copyfile(src, dst)
 
         for bsa_file, files in bsa_archives.items():
             self.log.info(f"Repacking {bsa_file.name!r} with patched files...")
@@ -350,18 +360,22 @@ File '{shape_path}' does not exist!"
                 src = self.app.get_tmp_dir() / file
                 dst = self.app.get_tmp_dir() / bsa_file.name / file
 
-                # Backup original file
+                # Remove original file from BSA
                 if dst.is_file():
-                    os.rename(
-                        dst,
-                        dst.with_suffix(
-                            dst.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")
-                        ),
-                    )
+                    os.remove(dst)
 
                 shutil.copyfile(src, dst)
 
             # 3. Repack BSA at output folder
+            dst = output_folder / bsa_file.name
+
+            # Backup original BSA
+            if dst.is_file():
+                os.rename(
+                    dst,
+                    dst.with_suffix(dst.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")),
+                )
+
             bsa.BSAArchive.create_archive(
                 self.app.get_tmp_dir() / bsa_file.name, output_folder / bsa_file.name
             )
@@ -386,6 +400,8 @@ File '{shape_path}' does not exist!"
                     )
 
                 shutil.copyfile(file, dest)
+                self.log.debug(f"Copied {str(file)!r} to {str(dest)!r}.")
+
         self.log.info(f"Output written to '{output_path}'.")
 
     def patch(self, ignore_bsa: bool = False, repack_bsas: bool = False):
