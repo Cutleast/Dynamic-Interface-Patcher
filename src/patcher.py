@@ -117,13 +117,26 @@ File '{shape_path}' does not exist!"
                 mod_file = mod_file.relative_to(self.patch_path)
 
             origin_path = self.original_mod_path / mod_file
+
+            # Skip missing SWF files
+            if not origin_path.is_file():
+                self.log.warning(
+                    f"{str(origin_path)!r} does not exist! Skipped patch file."
+                )
+                continue
+
             dest_path = self.app.get_tmp_dir() / mod_file
             if bsa_file is None:
                 os.makedirs(dest_path.parent, exist_ok=True)
                 shutil.copyfile(origin_path, dest_path)
-            else:
+            elif bsa_file.is_file():
                 bsa_archive = bsa.BSAArchive(bsa_file)
                 bsa_archive.extract_file(mod_file, self.app.get_tmp_dir())
+
+            # Skip missing BSA files
+            else:
+                continue
+
             self.swf_files[file] = dest_path
 
         self.log.info("Mod files ready to patch.")
@@ -157,6 +170,10 @@ File '{shape_path}' does not exist!"
             patch_file = key
             patch_data = value.get("swf")
             if not patch_data:
+                continue
+
+            # Skip missing SWF files
+            if patch_file not in self.swf_files:
                 continue
 
             swf_file = self.swf_files[patch_file]
@@ -294,6 +311,10 @@ File '{shape_path}' does not exist!"
         for file in self.patch_data.keys():
             bsa_file, mod_file = utils.parse_path(file)
             patched_file = mod_file.with_suffix(".swf")
+
+            # Skip missing SWF files
+            if not patched_file.is_file():
+                continue
 
             if bsa_file:
                 bsa_file = self.original_mod_path / bsa_file.name
