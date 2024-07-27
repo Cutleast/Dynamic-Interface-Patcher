@@ -141,14 +141,16 @@ Since not all changes should be applied to every element in the file, filters ar
 # Patcher Commandline Usage
 
 ```bash
-Usage: DIP.exe [-d] [patchpath] [originalpath]
+Usage: DIP.exe [-h] [-d] [-b] [patchpath] [originalpath]
 
 Dynamic Interface Patcher (c) Cutleast
 
-Positional arguments:
-  patchpath     Path to patch that gets automatically run. An original mod path must also be given!
-  originalpath  Path to original mod that gets automatically patched. A patch path must also be given!
+Positional Arguments:
+  patchpath         Path to patch that gets automatically run. An original mod path must also be given!
+  originalpath      Path to original mod that gets automatically patched. A patch path must also be given!
 
 Options:
-  -d, --debug   Enables debug mode so that debug files get outputted.
+  -h, --help        Show this help message and exit
+  -d, --debug       Enables debug mode so that debug files get outputted.
+  -b, --repack-bsa  Enables experimental repacking of original BSA file(s).
 ```

@@ -68,6 +68,12 @@ class MainApp(qtw.QApplication):
             default="",
             help="Path to original mod that gets automatically patched. A patch path must also be given!",
         )
+        parser.add_argument(
+            "-b",
+            "--repack-bsa",
+            help="Enables experimental repacking of original BSA file(s).",
+            action="store_true",
+        )
         self.cmd_args = parser.parse_args()
 
         self.log = logging.getLogger(self.__repr__())
@@ -182,6 +188,7 @@ class MainApp(qtw.QApplication):
         self.repack_checkbox = qtw.QCheckBox(
             "Repack BSA(s) (Warning! The original BSA(s) get(s) overwritten!) (Experimental, use at your own risk!)"
         )
+        self.repack_checkbox.setChecked(self.cmd_args.repack_bsa)
         self.main_layout.addWidget(self.repack_checkbox)
 
         self.protocol_widget = qtw.QTextEdit()
