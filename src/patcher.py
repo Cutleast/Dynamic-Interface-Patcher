@@ -120,7 +120,9 @@ File '{shape_path}' does not exist!"
 
             # Skip missing SWF files
             if not origin_path.is_file():
-                self.log.warning(f"{str(origin_path)!r} does not exist! Skipped patch file.")
+                self.log.warning(
+                    f"{str(origin_path)!r} does not exist! Skipped patch file."
+                )
                 continue
 
             dest_path = self.app.get_tmp_dir() / mod_file
@@ -169,7 +171,7 @@ File '{shape_path}' does not exist!"
             patch_data = value.get("swf")
             if not patch_data:
                 continue
-            
+
             # Skip missing SWF files
             if patch_file not in self.swf_files:
                 continue
