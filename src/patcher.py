@@ -49,7 +49,7 @@ class Patcher:
     def load_patch_data(self):
         self.patch_data = {}
 
-        self.log.info("Loading patch files...")
+        self.log.info(f"Loading patch files from {str(self.patch_path)!r}...")
 
         # Scan for json files
         for json_file in self.patch_path.glob("**\\*.json"):
@@ -426,7 +426,8 @@ File '{shape_path}' does not exist!"
         self.finish_patching(repack_bsas)
 
         # Delete symlink
-        self.ffdec_interface.del_symlink_path()
+        if self.ffdec_interface is not None:
+            self.ffdec_interface.del_symlink_path()
 
         # Send done signal to app
         self.log.info("Patch complete!")
