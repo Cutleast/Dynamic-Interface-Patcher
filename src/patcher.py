@@ -118,24 +118,29 @@ File '{shape_path}' does not exist!"
 
             origin_path = self.original_mod_path / mod_file
 
-            # Skip missing SWF files
-            if not origin_path.is_file():
-                self.log.warning(
-                    f"{str(origin_path)!r} does not exist! Skipped patch file."
-                )
-                self.patch_data.pop(file)  # Remove missing patch file from patch data
-                continue
-
             dest_path = self.app.get_tmp_dir() / mod_file
             if bsa_file is None:
-                os.makedirs(dest_path.parent, exist_ok=True)
-                shutil.copyfile(origin_path, dest_path)
+                if origin_path.is_file():
+                    os.makedirs(dest_path.parent, exist_ok=True)
+                    shutil.copyfile(origin_path, dest_path)
+
+                # Skip missing SWF files
+                else:
+                    self.log.warning(
+                        f"{str(origin_path)!r} does not exist! Skipped patch file."
+                    )
+                    self.patch_data.pop(file)
+                    continue
             elif bsa_file.is_file():
                 bsa_archive = bsa.BSAArchive(bsa_file)
                 bsa_archive.extract_file(mod_file, self.app.get_tmp_dir())
 
             # Skip missing BSA files
             else:
+                self.log.warning(
+                    f"{str(bsa_file)!r} does not exist! Skipped patch file."
+                )
+                self.patch_data.pop(file)
                 continue
 
             self.swf_files[file] = dest_path
