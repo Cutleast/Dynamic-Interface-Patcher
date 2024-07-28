@@ -13,6 +13,7 @@ import shutil
 import sys
 import tempfile
 import time
+import traceback
 from pathlib import Path
 
 import pyperclip as clipboard
@@ -361,10 +362,17 @@ here</a>.\
         return "MainApp"
 
     def handle_exception(self, exc_type, exc_value, exc_traceback):
-        self.log.critical(
-            "An uncaught exception occured:",
-            exc_info=(exc_type, exc_value, exc_traceback),
+        tb = "".join(
+            traceback.format_exception(exc_type, value=exc_value, tb=exc_traceback)
         )
+        # Remove dev environment paths from traceback
+        # cx_freeze, why ever, keeps them when building
+        tb = tb.replace(
+            "C:\\Users\\robin\\OneDrive\\Modding\\Mods\\Dynamic-Interface-Patcher\\src\\",
+            "",
+        )
+
+        self.log.critical("An uncaught exception occured:\n" + tb)
 
     def handle_stdout(self, text):
         self.protocol_widget.insertPlainText(text)
