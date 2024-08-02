@@ -381,7 +381,16 @@ File '{shape_path}' does not exist!"
             )
 
     def finish_patching(self, repack_bsas: bool):
-        output_path = Path(os.getcwd()).parent
+        if self.app.cmd_args.output_path:
+            output_path = Path(self.app.cmd_args.output_path)
+
+            if not output_path.parent.is_dir():
+                self.log.debug(
+                    f"Directory {str(output_path.parent)!r} does not exist! Falling back to parent of working directory..."
+                )
+                output_path = Path(os.getcwd()).parent
+        else:
+            output_path = Path(os.getcwd()).parent
 
         if repack_bsas:
             self.repack_bsas(output_path)

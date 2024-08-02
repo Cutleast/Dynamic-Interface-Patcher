@@ -75,6 +75,11 @@ class MainApp(qtw.QApplication):
             help="Enables experimental repacking of original BSA file(s).",
             action="store_true",
         )
+        parser.add_argument(
+            "-o",
+            "--output-path",
+            help="Specifies output path for patched files."
+        )
         self.cmd_args = parser.parse_args()
 
         self.log = logging.getLogger(self.__repr__())
