@@ -370,12 +370,6 @@ here</a>.\
         tb = "".join(
             traceback.format_exception(exc_type, value=exc_value, tb=exc_traceback)
         )
-        # Remove dev environment paths from traceback
-        # cx_freeze, why ever, keeps them when building
-        tb = tb.replace(
-            "C:\\Users\\robin\\OneDrive\\Modding\\Mods\\Dynamic-Interface-Patcher\\src\\",
-            "",
-        )
 
         self.log.critical("An uncaught exception occured:\n" + tb)
 

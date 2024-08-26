@@ -57,6 +57,7 @@ elif COMPILER == "cx_freeze":
     import sys
 
     build_options = {
+        "replace_paths": [("*", "")],
         "excludes": [],
         "include_path": "./src",
         "build_exe": DIST_FOLDER.name,
