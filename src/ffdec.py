@@ -44,7 +44,7 @@ class FFDec:
         if self.symlink_path is None:
             self.log.debug("Creating symlink to database...")
 
-            symlink_path = Path("C:\\DIP_temp")
+            symlink_path = Path("C:\\Users\\Public\\DIP_temp")
 
             if symlink_path.is_symlink():
                 os.unlink(symlink_path)
