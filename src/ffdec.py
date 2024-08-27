@@ -6,7 +6,6 @@ Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
 """
 
 import logging
-import os
 import subprocess
 from pathlib import Path
 
@@ -35,50 +34,8 @@ class FFDec:
     def __repr__(self):
         return "FFDecInterface"
 
-    def get_symlink_path(self):
-        """
-        Creates a symlink to the temp folder to avoid a path with
-        non-ASCII characters which are not supported by FFDec.
-        """
-
-        if self.symlink_path is None:
-            self.log.debug("Creating symlink to database...")
-
-            symlink_path = Path("C:\\Users\\Public\\DIP_temp")
-
-            if symlink_path.is_symlink():
-                os.unlink(symlink_path)
-                self.log.debug("Removed already existing symlink.")
-
-            os.symlink(self.app.get_tmp_dir(), symlink_path, target_is_directory=True)
-            self.symlink_path = symlink_path
-
-            self.log.debug(
-                f"Created symlink from {str(symlink_path)!r} to {str(self.app.get_tmp_dir())!r}."
-            )
-
-        return self.symlink_path
-
-    def del_symlink_path(self):
-        """
-        Deletes database symlink if it exists.
-        """
-
-        if self.symlink_path is not None:
-            self.log.debug("Deleting symlink...")
-
-            if self.symlink_path.is_symlink():
-                os.unlink(self.symlink_path)
-
-            self.symlink_path = None
-
-            self.log.debug("Symlink deleted.")
-
     def _exec_command(self, args: str):
         cmd = f""""{self.bin_path}" {args}"""
-
-        # Redirect to symlink
-        cmd = cmd.replace(str(self.app.get_tmp_dir()), str(self.get_symlink_path()))
 
         output = ""
 

@@ -450,10 +450,6 @@ File '{shape_path}' does not exist!"
         # and repack BSas if enabled
         self.finish_patching(repack_bsas)
 
-        # Delete symlink
-        if self.ffdec_interface is not None:
-            self.ffdec_interface.del_symlink_path()
-
         # Send done signal to app
         self.log.info("Patch complete!")
         self.app.done_signal.emit()
