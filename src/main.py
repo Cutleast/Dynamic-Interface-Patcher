@@ -76,9 +76,13 @@ class MainApp(qtw.QApplication):
             action="store_true",
         )
         parser.add_argument(
-            "-o",
-            "--output-path",
-            help="Specifies output path for patched files."
+            "-o", "--output-path", help="Specifies output path for patched files."
+        )
+        parser.add_argument(
+            "-s",
+            "--silent",
+            help="Toggles whether the GUI is shown while patching automatically.",
+            action="store_true",
         )
         self.cmd_args = parser.parse_args()
 
@@ -346,8 +350,15 @@ here</a>.\
 
         self.log.debug("Program started!")
 
-        self.root.show()
-        utils.apply_dark_title_bar(self.root)
+        show_gui: bool = (
+            self.cmd_args.patchpath is not None
+            and self.cmd_args.originalpath is not None
+            and not self.cmd_args.silent
+        )
+
+        if show_gui:
+            self.root.show()
+            utils.apply_dark_title_bar(self.root)
 
         if (patch_path := self.cmd_args.patchpath) and (
             original_path := self.cmd_args.originalpath
