@@ -4,8 +4,8 @@ all its dependencies with a FOMOD in one folder
 for installation as a mod.
 """
 
-import shutil
 import os
+import shutil
 from pathlib import Path
 
 COMPILER = "cx_freeze"  # "cx_freeze" or nuitka
@@ -14,7 +14,7 @@ DIST_FOLDER = Path("main.dist").resolve()
 FOMOD_FOLDER = Path("fomod").resolve()
 OUTPUT_FOLDER = Path("DIP_with_fomod").resolve() / "fomod"
 APPNAME="Dynamic Interface Patcher"
-VERSION="2.0.3"
+VERSION="2.1.0"
 AUTHOR="Cutleast"
 LICENSE="Attribution-NonCommercial-NoDerivatives 4.0 International"
 CONSOLE_MODE = "attach"  # "attach": Attaches to console it was started with (if any), "force": starts own console window, "disable": disables console completely
@@ -53,8 +53,9 @@ if COMPILER == "nuitka":
     "./src/main.py"'
     os.system(cmd)
 elif COMPILER == "cx_freeze":
-    from cx_Freeze import setup, Executable
     import sys
+
+    from cx_Freeze import Executable, setup
 
     build_options = {
         "replace_paths": [("*", "")],
