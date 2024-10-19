@@ -63,13 +63,18 @@ elif COMPILER == "cx_freeze":
         "build_exe": DIST_FOLDER.name,
     }
 
-    base = "gui"
-
     executables = [
         Executable(
             "./src/main.py",
-            base=base,
+            base="gui",
             target_name="DIP.exe",
+            icon="./src/assets/icon.ico",
+            copyright=LICENSE,
+        ),
+        Executable(
+            "./src/main.py",
+            base="console",
+            target_name="DIP_cli.exe",
             icon="./src/assets/icon.ico",
             copyright=LICENSE,
         )
