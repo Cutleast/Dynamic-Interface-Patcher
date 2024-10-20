@@ -12,6 +12,6 @@ src/resources_rc.py
 interface
 DIP_with_fomod
 *.bsa
-src/assets/ffdec/ffdec.bat
+res/ffdec/ffdec.bat
 DIP_*.7z
 mypy.ini
