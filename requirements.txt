@@ -1,10 +1,19 @@
-jstyleson
-Nuitka  # has problems with AV
+# GUI
+qtawesome
+PySide6
+QtPy
+
+# Distribution
 cx_freeze  # seems to be fine with AV
+
+# File System and Archiving
+lz4
+virtual_glob
+rarfile
+py7zr
+
+# Utilities
+jstyleson
 ordered-set
 psutil
 pyperclip
-qtawesome
-PySide6==6.6.1
-QtPy
-virtual_glob

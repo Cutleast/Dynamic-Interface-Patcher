@@ -1,13 +1,17 @@
 .venv
+.vscode
 *.code-workspace
 **__pycache__
+dist
 main.dist
 tests
 **.old
 src/*.xml
 src/*.json
+src/resources_rc.py
 interface
 DIP_with_fomod
 *.bsa
 src/assets/ffdec/ffdec.bat
 DIP_*.7z
+mypy.ini
