@@ -22,6 +22,8 @@ class Archive:
 
     __files: list[str] | None = None
 
+    __bin_path: Path = Path(os.getcwd()) / "7-zip" / "7z.exe"
+
     def __init__(self, path: Path):
         self.path = path
 
@@ -60,7 +62,7 @@ class Archive:
         """
 
         cmd: list[str] = [
-            "7z.exe",
+            str(self.__bin_path),
             "x" if full_paths else "e",
             str(self.path),
             f"-o{dest}",
@@ -85,7 +87,7 @@ class Archive:
         """
 
         cmd: list[str] = [
-            "7z.exe",
+            str(self.__bin_path),
             "x" if full_paths else "e",
             f"-o{dest}",
             "-aoa",
@@ -117,7 +119,7 @@ class Archive:
             return
 
         cmd: list[str] = [
-            "7z.exe",
+            str(self.__bin_path),
             "x" if full_paths else "e",
             f"-o{dest}",
             "-aoa",
