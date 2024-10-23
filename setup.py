@@ -12,7 +12,7 @@ from cx_Freeze import Executable, setup
 
 # Application details
 APPNAME = "Dynamic Interface Patcher"
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 AUTHOR = "Cutleast"
 LICENSE = "Attribution-NonCommercial-NoDerivatives 4.0 International"
 DIST_FOLDER = Path("dist").resolve()
