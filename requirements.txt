@@ -14,6 +14,4 @@ py7zr
 
 # Utilities
 jstyleson
-ordered-set
-psutil
 pyperclip
