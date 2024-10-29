@@ -4,7 +4,8 @@ PySide6
 QtPy
 
 # Distribution
-cx_freeze  # seems to be fine with AV
+# cx_freeze  # seems to be fine with AV
+pyinstaller # 3 detecions on VT
 
 # File System and Archiving
 lz4
