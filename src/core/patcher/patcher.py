@@ -32,6 +32,8 @@ class Patcher:
     log: logging.Logger = logging.getLogger("Patcher")
 
     config: Config
+    app_path: Path
+    cwd_path: Path
 
     jre_archive_path: Path
     patch_data: dict[Path, dict]
@@ -45,9 +47,11 @@ class Patcher:
     tmp_path: Optional[Path] = None
 
     def __init__(self):
-        self.jre_archive_path = Path(os.getcwd()) / "jre.7z"
-
         self.config = QApplication.instance().config
+        self.app_path = QApplication.instance().app_path
+        self.cwd_path = QApplication.instance().cwd_path
+
+        self.jre_archive_path = self.app_path / "jre.7z"
 
         self.ffdec_interface = FFDecInterface()
         self.xdelta_interface = XDeltaInterface()
@@ -320,7 +324,7 @@ class Patcher:
         if self.config.output_folder is not None:
             output_path = self.config.output_folder
         else:
-            output_path = Path(os.getcwd()).parent
+            output_path = self.cwd_path.parent
 
         if self.config.repack_bsas:
             self.repack_bsas(output_path)
@@ -406,6 +410,29 @@ class Patcher:
 
         self.log.info("Binary patches applied.")
 
+    def check_patch(self, folder: Path) -> bool:
+        """
+        Checks if a folder contains a valid patch.
+
+        Args:
+            folder (Path): Path to the folder to check.
+
+        Returns:
+            bool: True if the folder contains a valid patch, False otherwise.
+        """
+
+        patch_path: Path = folder / "Patch"
+
+        if not patch_path.is_dir():
+            return False
+
+        if not list(patch_path.glob("**/*.json")) and not list(
+            patch_path.glob("**/*.bin")
+        ):
+            return False
+
+        return True
+
     def patch(self, patch_path: Path, original_mod_path: Path) -> float:
         """
         Patches mod through following process:
@@ -487,7 +514,7 @@ class Patcher:
 
         self.log.debug("Scanning for patches...")
 
-        parent_folder = Path(os.getcwd()).parent
+        parent_folder = self.cwd_path.parent
 
         self.log.debug(f"Searching in '{parent_folder}'...")
 

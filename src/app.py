@@ -4,6 +4,7 @@ Copyright (c) Cutleast
 
 import logging
 import os
+import sys
 from argparse import Namespace
 from pathlib import Path
 
@@ -33,6 +34,13 @@ class App(QApplication):
     log: logging.Logger = logging.getLogger("App")
     stdout_handler: StdoutHandler
     exception_handler: ExceptionHandler
+
+    app_path: Path = (
+        Path(sys.executable if getattr(sys, "frozen", False) else __file__)
+        .resolve()
+        .parent
+    )
+    cwd_path: Path = Path(os.getcwd())
 
     patcher: Patcher
 
@@ -74,8 +82,8 @@ class App(QApplication):
         self.setStyleSheet(read_resource(":/style.qss"))
         self.setWindowIcon(QIcon(":/icons/icon.ico"))
 
-        self.log.info(f"Current working directory: {os.getcwd()}")
-        self.log.info(f"Executable location: {Path(__file__).resolve().parent}")
+        self.log.info(f"Current working directory: {self.cwd_path}")
+        self.log.info(f"Executable location: {self.app_path}")
         self.log.info("Program started!")
 
         self.root = MainWindow()

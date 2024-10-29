@@ -40,10 +40,12 @@ class PatcherWidget(QWidget):
     args: Namespace
     config: Config
     patcher: Patcher
+    cwd_path: Path
 
     patcher_thread: Optional[Thread] = None
 
     status_signal = Signal(StatusUpdate)
+    valid_signal = Signal(bool)
 
     def __init__(self):
         super().__init__()
@@ -51,6 +53,7 @@ class PatcherWidget(QWidget):
         self.args = QApplication.instance().args
         self.config = QApplication.instance().config
         self.patcher = QApplication.instance().patcher
+        self.cwd_path = QApplication.instance().cwd_path
 
         self.__init_ui()
 
@@ -59,6 +62,8 @@ class PatcherWidget(QWidget):
         self.status_signal.emit(StatusUpdate.Ready)
 
     def __on_app_ready(self):
+        self.__validate()
+
         if (patch_path := self.args.patchpath) and (
             original_path := self.args.originalpath
         ):
@@ -83,6 +88,7 @@ class PatcherWidget(QWidget):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
         self.patch_path_entry.setEditable(True)
+        self.patch_path_entry.currentTextChanged.connect(lambda _: self.__validate())
         patch_path_layout.addWidget(self.patch_path_entry)
         patch_path_button = QPushButton()
         patch_path_button.setIcon(qta.icon("fa.folder-open", color="#ffffff"))
@@ -116,6 +122,7 @@ class PatcherWidget(QWidget):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
         self.mod_path_entry.setEditable(True)
+        self.mod_path_entry.currentTextChanged.connect(lambda _: self.__validate())
         mod_path_layout.addWidget(self.mod_path_entry)
         mod_path_button = QPushButton()
         mod_path_button.setIcon(qta.icon("fa.folder-open", color="#ffffff"))
@@ -152,9 +159,23 @@ class PatcherWidget(QWidget):
 
         # If the current working directory is the data folder,
         # set the mod path to the parent folder
-        parent_folder = Path(os.getcwd()).parent
+        parent_folder = self.cwd_path.parent
         if parent_folder.parts[-1].lower() == "data":
             self.mod_path_entry.setCurrentText(str(parent_folder))
+
+    def __validate(self) -> None:
+        patch_path = Path(self.patch_path_entry.currentText()).resolve()
+        mod_path = Path(self.mod_path_entry.currentText()).resolve()
+
+        if not self.patcher.check_patch(patch_path):
+            self.valid_signal.emit(False)
+            return
+
+        if not mod_path.is_dir():
+            self.valid_signal.emit(False)
+            return
+
+        self.valid_signal.emit(True)
 
     def run(self) -> None:
         patch_path = Path(self.patch_path_entry.currentText()).resolve()

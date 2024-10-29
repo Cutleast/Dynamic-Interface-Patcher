@@ -6,6 +6,7 @@ import logging
 import os
 from pathlib import Path
 
+from PySide6.QtWidgets import QApplication
 from virtual_glob import InMemoryPath, glob
 
 from core.utilities.process_runner import run_process
@@ -22,9 +23,10 @@ class Archive:
 
     __files: list[str] | None = None
 
-    __bin_path: Path = Path(os.getcwd()) / "7-zip" / "7z.exe"
+    bin_path: Path
 
     def __init__(self, path: Path):
+        self.bin_path = QApplication.instance().app_path / "7-zip" / "7z.exe"
         self.path = path
 
     @property
@@ -62,7 +64,7 @@ class Archive:
         """
 
         cmd: list[str] = [
-            str(self.__bin_path),
+            str(self.bin_path),
             "x" if full_paths else "e",
             str(self.path),
             f"-o{dest}",
@@ -87,7 +89,7 @@ class Archive:
         """
 
         cmd: list[str] = [
-            str(self.__bin_path),
+            str(self.bin_path),
             "x" if full_paths else "e",
             f"-o{dest}",
             "-aoa",
@@ -119,7 +121,7 @@ class Archive:
             return
 
         cmd: list[str] = [
-            str(self.__bin_path),
+            str(self.bin_path),
             "x" if full_paths else "e",
             f"-o{dest}",
             "-aoa",
