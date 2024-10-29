@@ -72,6 +72,7 @@ class Header:
         self.version = Integer.parse(stream, Integer.IntType.ULong)
 
         if self.version != 105:
+            print(self.version)
             raise Exception("Archive format is not supported!")
 
         self.offset = Integer.parse(stream, Integer.IntType.ULong)

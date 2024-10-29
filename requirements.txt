@@ -1,10 +1,18 @@
-jstyleson
-Nuitka  # has problems with AV
-cx_freeze  # seems to be fine with AV
-ordered-set
-psutil
-pyperclip
+# GUI
 qtawesome
-PySide6==6.6.1
+PySide6
 QtPy
+
+# Distribution
+# cx_freeze  # issues with something
+pyinstaller==6.1 # 1 detecions on VT probably caused by ffdec
+
+# File System and Archiving
+lz4
 virtual_glob
+rarfile
+py7zr
+
+# Utilities
+jstyleson
+pyperclip

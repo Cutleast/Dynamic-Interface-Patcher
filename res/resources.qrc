@@ -1,0 +1,14 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>default_configs/config.json</file>
+        <file>icons/arrow_down.svg</file>
+        <file>icons/arrow_left.svg</file>
+        <file>icons/arrow_right.svg</file>
+        <file>icons/arrow_up.svg</file>
+        <file>icons/checkmark.svg</file>
+        <file>icons/grip.png</file>
+        <file>icons/icon.ico</file>
+        <file>style.qss</file>
+    </qresource>
+</RCC>

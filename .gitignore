@@ -11,3 +11,6 @@ DIP_with_fomod
 *.bsa
 src/assets/ffdec/ffdec.bat
 DIP_*.7z
+dist
+build
+*.spec
