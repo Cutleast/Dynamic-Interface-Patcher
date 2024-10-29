@@ -15,3 +15,4 @@ DIP_with_fomod
 res/ffdec/ffdec.bat
 DIP_*.7z
 mypy.ini
+DIP.log
