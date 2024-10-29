@@ -96,6 +96,7 @@ class MainWidget(QWidget):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
         self.run_button.clicked.connect(self.run)
+        self.patcher_widget.valid_signal.connect(self.run_button.setEnabled)
         hlayout.addWidget(self.run_button)
 
         copy_log_button = QPushButton()
