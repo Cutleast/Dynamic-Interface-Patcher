@@ -3,7 +3,7 @@
 *.code-workspace
 **__pycache__
 dist
-main.dist
+build
 tests
 **.old
 src/*.xml
