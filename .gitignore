@@ -16,3 +16,4 @@ res/ffdec/ffdec.bat
 DIP_*.7z
 mypy.ini
 DIP.log
+version.txt
