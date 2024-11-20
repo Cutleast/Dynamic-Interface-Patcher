@@ -1,70 +1,57 @@
 """
 Copyright (c) Cutleast
-
-Build script for cx_freeze. Run with `python setup.py build_exe`.
 """
 
 import os
 import shutil
 from pathlib import Path
 
-from cx_Freeze import Executable, setup
+import pyinstaller_versionfile
 
 # Application details
 APPNAME = "Dynamic Interface Patcher"
-VERSION = "2.1.1"
+VERSION = "2.1.2"
 AUTHOR = "Cutleast"
 LICENSE = "Attribution-NonCommercial-NoDerivatives 4.0 International"
 DIST_FOLDER = Path("dist").resolve()
+BUILD_FOLDER = Path("build").resolve()
 FOMOD_FOLDER = Path("fomod").resolve()
 OUTPUT_FOLDER = Path("DIP_with_fomod").resolve() / "fomod"
-OBSOLETE_ITEMS: list[Path] = [DIST_FOLDER / "lib" / "qtpy" / "tests"]
+OBSOLETE_ITEMS: list[Path] = []
 ADDITIONAL_ITEMS: dict[Path, Path] = {
-    Path("res") / "7-zip": DIST_FOLDER / "7-zip",
-    Path("res") / "ffdec": DIST_FOLDER / "ffdec",
-    Path("res") / "jre.7z": DIST_FOLDER / "jre.7z",
-    Path("res") / "xdelta": DIST_FOLDER / "xdelta",
+    Path("res") / "7-zip": OUTPUT_FOLDER / "DIP" / "7-zip",
+    Path("res") / "ffdec": OUTPUT_FOLDER / "DIP" / "ffdec",
+    Path("res") / "jre.7z": OUTPUT_FOLDER / "DIP" / "jre.7z",
+    Path("res") / "xdelta": OUTPUT_FOLDER / "DIP" / "xdelta",
 }
 
-build_options = {
-    "replace_paths": [("*", "")],
-    "excludes": ["tkinter", "unittest"],
-    "zip_include_packages": ["encodings", "PySide6", "shiboken6"],
-    "includes": [],
-    "include_path": "./src",
-    "build_exe": DIST_FOLDER,
-}
+for folder in [DIST_FOLDER, BUILD_FOLDER]:
+    if folder.is_dir():
+        shutil.rmtree(folder)
+        print(f"Deleted {folder} folder.")
 
-executables = [
-    Executable(
-        "./src/main.py",
-        base="gui",
-        target_name="DIP.exe",
-        icon="./res/icons/icon.ico",
-        copyright=LICENSE,
-    ),
-    Executable(
-        "./src/main.py",
-        base="console",
-        target_name="DIP_cli.exe",
-        icon="./res/icons/icon.ico",
-        copyright=LICENSE,
-    ),
-]
-
-if DIST_FOLDER.is_dir():
-    shutil.rmtree(DIST_FOLDER)
-    print("Deleted dist folder.")
-
-setup(
-    name=APPNAME,
+print("Creating version.txt...")
+pyinstaller_versionfile.create_versionfile_from_input_file(
+    output_file="version.txt",
+    input_file="version.yml",
     version=VERSION,
-    description=APPNAME,
-    author=AUTHOR,
-    license=LICENSE,
-    options={"build_exe": build_options},
-    executables=executables,
 )
+
+print("Building Executables with PyInstaller...")
+os.system(
+    f"pyinstaller " "--noconfirm " "--clean " f"--distpath {DIST_FOLDER} " "DIP.spec"
+)
+
+print("Packing with FOMOD...")
+if OUTPUT_FOLDER.is_dir():
+    shutil.rmtree(OUTPUT_FOLDER)
+    print("Deleted already existing output folder.")
+
+print("Copying FOMOD...")
+shutil.copytree(FOMOD_FOLDER, OUTPUT_FOLDER, dirs_exist_ok=True)
+
+print("Copying DIP...")
+shutil.copytree(DIST_FOLDER / "DIP", OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
 
 print(f"Copying {len(ADDITIONAL_ITEMS)} additional item(s)...")
 for item, dest in ADDITIONAL_ITEMS.items():
@@ -76,37 +63,33 @@ for item, dest in ADDITIONAL_ITEMS.items():
     else:
         print(f"{str(item)!r} does not exist!")
         continue
-
-    print(f"Copied {str(item)!r} to {str(dest.relative_to(DIST_FOLDER))!r}.")
+    print(f"Copied {str(item)!r} to {str(dest.relative_to(OUTPUT_FOLDER))!r}.")
 
 for item in OBSOLETE_ITEMS:
     if item.is_file():
         os.remove(item)
     elif item.is_dir():
         shutil.rmtree(item)
+    print(f"Removed item {str(item.relative_to(OUTPUT_FOLDER))!r} from dist folder.")
 
-    print(f"Removed item {str(item.relative_to(DIST_FOLDER))!r} from dist folder.")
-
-print("Packing with FOMOD...")
-if OUTPUT_FOLDER.is_dir():
-    shutil.rmtree(OUTPUT_FOLDER)
-    print("Deleted already existing output folder.")
-
-print("Copying FOMOD...")
-shutil.copytree(FOMOD_FOLDER, OUTPUT_FOLDER, dirs_exist_ok=True)
-
-print("Copying DIP...")
-shutil.copytree(DIST_FOLDER, OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
+# Update version in info.xml
+info_xml_path = OUTPUT_FOLDER / "info.xml"
+if info_xml_path.is_file():
+    with info_xml_path.open("r", encoding="utf-16") as file:
+        lines = file.readlines()
+    with info_xml_path.open("w", encoding="utf-16") as file:
+        for line in lines:
+            if "<Version>" in line:
+                line = f"\t<Version>{VERSION}</Version>\n"
+            file.write(line)
+    print(f"Updated version in {info_xml_path} to {VERSION}.")
 
 print("Packing into 7-zip archive...")
 if Path(f"DIP_v{VERSION}.7z").is_file():
     os.remove(f"DIP_v{VERSION}.7z")
     print("Deleted already existing 7-zip archive.")
 
-cmd = f"res\\7-zip\\7z.exe \
-a \
-DIP_v{VERSION}.7z \
-{OUTPUT_FOLDER}"
+cmd = f"res\\7-zip\\7z.exe a DIP_v{VERSION}.7z {OUTPUT_FOLDER}"
 os.system(cmd)
 
 print("Done!")

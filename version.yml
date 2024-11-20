@@ -1,0 +1,11 @@
+CompanyName: Cutleast
+FileDescription: Dynamic Interface Patcher
+InternalName: Dynamic Interface Patcher
+LegalCopyright: Copyright (c) Cutleast
+OriginalFilename: DIP.exe
+ProductName: Dynamic Interface Patcher
+Translation:
+  - langID: 0
+    charsetID: 1200
+  - langID: 1033
+    charsetID: 1252

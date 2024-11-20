@@ -3,7 +3,7 @@
 *.code-workspace
 **__pycache__
 dist
-main.dist
+build
 tests
 **.old
 src/*.xml
@@ -16,3 +16,4 @@ res/ffdec/ffdec.bat
 DIP_*.7z
 mypy.ini
 DIP.log
+version.txt
