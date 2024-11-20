@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compile-qrc",
+            "type": "shell",
+            "command": "pyside6-rcc",
+            "args": [
+                "${workspaceFolder:Dynamic-Interface-Patcher}/res/resources.qrc",
+                "-o",
+                "${workspaceFolder:Dynamic-Interface-Patcher}/src/resources_rc.py"
+            ],
+            "problemMatcher": [],
+            "detail": "Compiles Qt resource file."
+        }
+    ]
+}
