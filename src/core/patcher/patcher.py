@@ -335,7 +335,7 @@ class Patcher:
 
                 # Backup already existing file
                 if dest.is_file():
-                    os.rename(
+                    shutil.move(
                         dest,
                         dest.with_suffix(
                             dest.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")
