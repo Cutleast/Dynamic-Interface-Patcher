@@ -9,6 +9,7 @@ QWidget#regular {
 }
 QWidget#root,
 QWidget#primary,
+QMainWindow,
 QDialog {
     background: #202020;
     spacing: 15px;
@@ -24,10 +25,8 @@ QWidget#transparent {
 QWidget:disabled {
     color: #66ffffff;
 }
-QWidget#warn_banner {
+QWidget#warning {
     background: #a6ff3c00;
-    spacing: 15px;
-    border-radius: 8px;
 }
 
 
@@ -38,7 +37,7 @@ QMenu {
     color: #ffffff;
 }
 QMenu::right-arrow {
-    image: url(./assets/arrow_right.svg);
+    image: url(:/icons/arrow_right.svg);
     width: 24px;
     height: 24px;
 }
@@ -101,7 +100,7 @@ QToolButton::menu-button:pressed {
     background: #0cffffff;
 }
 QToolButton::menu-arrow {
-    image: url(./assets/arrow_down.svg);
+    image: url(:/icons/arrow_down.svg);
 }
 QCheckBox#menu_checkbox {
     padding: 8px;
@@ -242,11 +241,11 @@ QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {
 }
 QSpinBox::up-button,
 QDoubleSpinBox::up-button {
-    image: url(./assets/arrow_up.svg);
+    image: url(:/icons/arrow_up.svg);
 }
 QSpinBox::down-button,
 QDoubleSpinBox::down-button {
-    image: url(./assets/arrow_down.svg);
+    image: url(:/icons/arrow_down.svg);
 }
 
 
@@ -259,7 +258,7 @@ QComboBox::drop-down {
     border: 0px;
 }
 QComboBox::down-arrow {
-    image: url(./assets/arrow_down.svg);
+    image: url(:/icons/arrow_down.svg);
     width: 24px;
     height: 24px;
 }
@@ -283,6 +282,10 @@ QComboBox QAbstractItemView::item:selected,
 QAbstractItemView#completer_popup::item:selected {
     background: #15ffffff;
     color: #4994e0;
+}
+
+QStatusBar {
+    background: transparent;
 }
 
 
@@ -316,10 +319,10 @@ QScrollBar::handle:pressed {
     background: #202020;
 }
 QScrollBar::up-arrow {
-    image: url(./assets/arrow_up.svg);
+    image: url(:/icons/arrow_up.svg);
 }
 QScrollBar::down-arrow {
-    image: url(./assets/arrow_down.svg);
+    image: url(:/icons/arrow_down.svg);
 }
 QScrollBar::add-line,
 QScrollBar::sub-line {
@@ -340,6 +343,9 @@ QProgressBar {
 QProgressBar::chunk {
     background: #4994e0;
     border-radius: 8px;
+}
+QProgressBar[failed="true"]::chunk {
+    background: #a6ff3c00;
 }
 
 
@@ -397,7 +403,7 @@ QCheckBox::indicator:checked,
 QListWidget::indicator:checked,
 QTableView::indicator:checked,
 QTreeView::indicator:checked {
-    image: url(./assets/checkmark.svg);
+    image: url(:/icons/checkmark.svg);
 }
 QRadioButton::indicator {
     border-radius: 10px;
@@ -499,12 +505,12 @@ QHeaderView::section:last {
     border-top-right-radius: 8px;
 }
 QHeaderView::down-arrow {
-    image: url(./assets/arrow_down.svg);
+    image: url(:/icons/arrow_down.svg);
     width: 20px;
     height: 20px;
 }
 QHeaderView::up-arrow {
-    image: url(./assets/arrow_up.svg);
+    image: url(:/icons/arrow_up.svg);
     width: 20px;
     height: 20px;
 }
@@ -516,7 +522,7 @@ QSplitter {
 }
 QSplitter::handle {
     border-radius: 4px;
-    image: url(./assets/grip.png);
+    image: url(:/icons/grip.png);
     height: 15px;
     padding-left: 2px;
     padding-right: 2px;
@@ -534,4 +540,47 @@ QTextBrowser {
     padding-right: 20%;
 
     border: 0px;
+}
+
+/* Tab Widget & Tab Bar */
+QTabWidget::pane {
+    background: transparent;
+    border-radius: 8px;
+    padding: 4px;
+}
+QTabBar {
+    background: #08ffffff;
+}
+QTabBar::tab {
+    background: transparent;
+    border: 0px solid;
+    height: 25px;
+    padding: 4px;
+    spacing: 4px;
+    margin: 4px;
+    border-radius: 4px;
+}
+QTabBar::tab:hover:!selected {
+    background: #1cffffff;
+}
+QTabBar::tab:selected {
+    background: #15ffffff;
+    color: #4994e0;
+}
+QTabBar::close-button {
+    image: url(:/icons/close.svg);
+    width: 20px;
+    height: 20px;
+    padding: 3px;
+    border-radius: 1px;
+}
+QTabBar::close-button:hover {
+    background: #1cffffff;
+}
+QTabWidget::tab-bar#centered_tab {
+    alignment: center;
+}
+QTabWidget#centered_tab QTabBar::tab {
+    padding-left: 25px;
+    padding-right: 25px;
 }
