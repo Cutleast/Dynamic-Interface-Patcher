@@ -26,7 +26,7 @@ class App(QApplication):
     """
 
     APP_NAME: str = "Dynamic Interface Patcher"
-    APP_VERSION: str = "2.1.1"
+    APP_VERSION: str = "2.1.3"
 
     args: Namespace
     config: Config

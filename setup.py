@@ -10,7 +10,7 @@ import pyinstaller_versionfile
 
 # Application details
 APPNAME = "Dynamic Interface Patcher"
-VERSION = "2.1.2"
+VERSION = "2.1.3"
 AUTHOR = "Cutleast"
 LICENSE = "Attribution-NonCommercial-NoDerivatives 4.0 International"
 DIST_FOLDER = Path("dist").resolve()
