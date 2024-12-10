@@ -162,6 +162,8 @@ class PatcherWidget(QWidget):
         parent_folder = self.cwd_path.parent
         if parent_folder.parts[-1].lower() == "data":
             self.mod_path_entry.setCurrentText(str(parent_folder))
+        elif self.cwd_path.parts[-1].lower() == "data":
+            self.mod_path_entry.setCurrentText(str(self.cwd_path))
 
     def __validate(self) -> None:
         patch_path = Path(self.patch_path_entry.currentText()).resolve()

@@ -514,18 +514,21 @@ class Patcher:
 
         self.log.debug("Scanning for patches...")
 
-        parent_folder = self.cwd_path.parent
+        paths_to_scan: list[Path] = [
+            self.cwd_path,
+            self.cwd_path.parent,
+        ]
+        patches: list[str] = []
 
-        self.log.debug(f"Searching in '{parent_folder}'...")
+        for path in paths_to_scan:
+            self.log.debug(f"Searching in '{path}'...")
 
-        paths: list[str] = []
+            for folder in path.glob(".\\*DIP*\\Patch"):
+                patches.append(str(folder.parent))
 
-        for folder in parent_folder.glob(".\\*DIP*\\Patch"):
-            paths.append(str(folder.parent))
+        self.log.debug(f"Found {len(patches)} patches.")
 
-        self.log.debug(f"Found {len(paths)} patches.")
-
-        return paths
+        return patches
 
     @staticmethod
     def process_patch_data(patch_data: dict) -> list[dict[str, str | dict]]:
