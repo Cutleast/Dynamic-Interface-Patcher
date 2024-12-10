@@ -16,3 +16,4 @@ DIP_*.7z
 mypy.ini
 DIP.log
 version.txt
+main.dist

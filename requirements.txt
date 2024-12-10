@@ -4,7 +4,8 @@ PySide6
 QtPy
 
 # Distribution
-# cx_freeze  # seems to be fine with AV
+cx_freeze  # seems to be fine with AV
+nuitka  # severe issues with AV (trojan)
 pyinstaller==6.1  # 3 detecions on VT
 pyinstaller-versionfile  # for versioninfo
 
