@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Application details
 APPNAME = "Dynamic Interface Patcher"
-VERSION = "2.1.4"
+VERSION = "2.1.5"
 AUTHOR = "Cutleast"
 LICENSE = "Attribution-NonCommercial-NoDerivatives 4.0 International"
 DIST_FOLDER = Path("main.dist").resolve()
