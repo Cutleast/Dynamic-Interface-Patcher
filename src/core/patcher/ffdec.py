@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
+from core.utilities.filesystem import is_file
 from core.utilities.process_runner import run_process
 
 
@@ -36,7 +37,7 @@ class FFDecInterface:
         for shape, indexes in shapes.items():
             shape = shape.resolve()
 
-            if not shape.is_file():
+            if not is_file(shape):
                 self.log.error(
                     f"Failed to patch shape {shape.name}: File does not exist!"
                 )

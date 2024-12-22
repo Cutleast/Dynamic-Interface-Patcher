@@ -5,6 +5,8 @@ Copyright (c) Cutleast
 from pathlib import Path
 from typing import Optional
 
+from core.utilities.filesystem import is_dir, is_file
+
 from ._base_config import BaseConfig
 
 
@@ -71,9 +73,9 @@ class Config(BaseConfig):
     def output_folder(self, path: Path):
         Config.validate_type(path, Path)
 
-        if not path.parent.is_dir():
+        if not is_dir(path.parent):
             raise FileNotFoundError(path)
-        elif path.is_file():
+        elif is_file(path):
             raise NotADirectoryError(path)
 
         self._settings["output_folder"] = str(path.resolve())

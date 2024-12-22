@@ -9,6 +9,7 @@ from typing import Any, Iterable
 
 import jstyleson as json  # type: ignore
 
+from core.utilities.filesystem import is_file
 from core.utilities.qt_res_provider import load_json_resource
 
 
@@ -38,7 +39,7 @@ class BaseConfig:
         Loads configuration from JSON File, if existing.
         """
 
-        if self._config_path.is_file():
+        if is_file(self._config_path):
             with self._config_path.open("r", encoding="utf8") as file:
                 self._settings = self._default_settings | json.load(file)
 

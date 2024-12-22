@@ -9,6 +9,8 @@ from pathlib import Path
 import lz4.frame
 from virtual_glob import InMemoryPath, glob
 
+from core.utilities.filesystem import is_dir, is_file
+
 from .datatypes import Hash, Integer, String
 from .file_name_block import FileNameBlock
 from .file_record import FileRecord, FileRecordBlock
@@ -140,7 +142,7 @@ class BSAArchive:
         with open(destination, "wb") as file:
             file.write(data)
 
-        if not destination.is_file():
+        if not is_file(destination):
             raise Exception(
                 f"Failed to extract file '{filename}' from archive '{self.path}'!"
             )
@@ -214,7 +216,7 @@ class BSAArchive:
         Creates an archive from `input_folder`.
         """
 
-        if not input_folder.is_dir():
+        if not is_dir(input_folder):
             raise ValueError(f"{str(input_folder)!r} must be an existing directory!")
 
         # Get elements and prepare folder and file structure

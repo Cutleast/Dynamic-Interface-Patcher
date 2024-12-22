@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 
 from core.config.config import Config
 from core.patcher.patcher import Patcher
+from core.utilities.filesystem import is_dir
 from core.utilities.status_update import StatusUpdate
 from core.utilities.thread import Thread
 
@@ -173,7 +174,7 @@ class PatcherWidget(QWidget):
             self.valid_signal.emit(False)
             return
 
-        if not mod_path.is_dir():
+        if not is_dir(mod_path):
             self.valid_signal.emit(False)
             return
 

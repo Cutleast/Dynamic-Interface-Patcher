@@ -17,6 +17,7 @@ from PySide6.QtWidgets import QApplication
 from core.archive.archive import Archive
 from core.bsa import BSAArchive
 from core.config.config import Config
+from core.utilities.filesystem import is_dir, is_file
 from core.utilities.path_splitter import split_path_with_bsa
 from core.utilities.xml_utils import beautify_xml, split_frames, unsplit_frames
 
@@ -88,7 +89,7 @@ class Patcher:
             for shape_data in patch_data.get("shapes", []):
                 shape_path: Path = (self.shape_path / shape_data["fileName"]).resolve()
 
-                if not shape_path.is_file():
+                if not is_file(shape_path):
                     self.log.error(
                         f"Failed to patch shape with id '{shape_data['id']}': "
                         f"File '{shape_path}' does not exist!"
@@ -132,7 +133,7 @@ class Patcher:
 
             dest_path = self.get_tmp_dir() / mod_file
             if bsa_file is None:
-                if origin_path.is_file():
+                if is_file(origin_path):
                     os.makedirs(dest_path.parent, exist_ok=True)
                     shutil.copyfile(origin_path, dest_path)
 
@@ -143,7 +144,7 @@ class Patcher:
                     )
                     self.patch_data.pop(file)
                     continue
-            elif bsa_file.is_file():
+            elif is_file(bsa_file):
                 bsa_archive = BSAArchive(bsa_file)
                 bsa_archive.extract_file(mod_file, self.get_tmp_dir())
 
@@ -258,7 +259,7 @@ class Patcher:
             patched_file = mod_file.with_suffix(".swf")
 
             # Skip missing SWF files
-            if not (self.get_tmp_dir() / patched_file).is_file():
+            if not is_file(self.get_tmp_dir() / patched_file):
                 self.log.warning(
                     f"Skipped missing patched file {str(self.get_tmp_dir() / patched_file)!r}."
                 )
@@ -276,7 +277,7 @@ class Patcher:
                 dst = output_folder / file
 
                 # Backup original file
-                if dst.is_file():
+                if is_file(dst):
                     os.rename(
                         dst,
                         dst.with_suffix(
@@ -300,7 +301,7 @@ class Patcher:
                 dst = self.get_tmp_dir() / bsa_file.name / file
 
                 # Remove original file from BSA
-                if dst.is_file():
+                if is_file(dst):
                     os.remove(dst)
 
                 shutil.copyfile(src, dst)
@@ -309,7 +310,7 @@ class Patcher:
             dst = output_folder / bsa_file.name
 
             # Backup original BSA
-            if dst.is_file():
+            if is_file(dst):
                 os.rename(
                     dst,
                     dst.with_suffix(dst.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")),
@@ -334,7 +335,7 @@ class Patcher:
                 os.makedirs(dest.parent, exist_ok=True)
 
                 # Backup already existing file
-                if dest.is_file():
+                if is_file(dest):
                     shutil.move(
                         dest,
                         dest.with_suffix(
@@ -423,7 +424,7 @@ class Patcher:
 
         patch_path: Path = folder / "Patch"
 
-        if not patch_path.is_dir():
+        if not is_dir(patch_path):
             return False
 
         if not list(patch_path.glob("**/*.json")) and not list(
@@ -499,7 +500,7 @@ class Patcher:
         return duration
 
     def clean(self) -> None:
-        if self.tmp_path is not None and self.tmp_path.is_dir():
+        if self.tmp_path is not None and is_dir(self.tmp_path):
             shutil.rmtree(self.tmp_path, ignore_errors=True)
             self.tmp_path = None
             self.log.info("Removed temporary folder.")
