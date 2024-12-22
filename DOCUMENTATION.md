@@ -67,6 +67,9 @@ and
 
 - the swf itself, where everything else can be modified
 
+There's also an optional "optional" tag to indicate that the original SWF doesn't have to exist for the patch to succeed.
+DIP will then ignore this patch file if the original SWF is missing instead of throwing an error.
+
 #### SWF (XML) Patch structure
 
 The patcher converts the SWF files to XML files and modifies them according to the changes specified in the `swf` part of the JSON file.
@@ -91,6 +94,7 @@ Since not all changes should be applied to every element in the file, filters ar
             "fileName": "example.svg" // Path relative to "Shapes" folder
         }
     ],
+    "optional": true, // this tag itself is optional and indicates that the original file doesn't have to exist for the patch to succeed
     // '#' for filters | '~' for changes | '' for parent elements
     "swf": {
         "displayRect": {
