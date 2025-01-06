@@ -12,7 +12,7 @@ import pyinstaller_versionfile
 APPNAME = "Dynamic Interface Patcher"
 VERSION = "2.1.3"
 AUTHOR = "Cutleast"
-LICENSE = "Attribution-NonCommercial-NoDerivatives 4.0 International"
+LICENSE = "GNU General Public License v3.0"
 DIST_FOLDER = Path("dist").resolve()
 BUILD_FOLDER = Path("build").resolve()
 FOMOD_FOLDER = Path("fomod").resolve()

@@ -115,7 +115,7 @@ Created by Cutleast (<a href='https://next.nexusmods.com/profile/Cutleast'>Nexus
 <br><br>
 Icon by Wuerfelhusten (<a href='https://next.nexusmods.com/profile/Wuerfelhusten'>NexusMods</a>)
 <br><br>
-Licensed under Attribution-NonCommercial-NoDerivatives 4.0 International
+Licensed under GNU General Public License v3.0
 """
 
         credits_label = QLabel(text)
