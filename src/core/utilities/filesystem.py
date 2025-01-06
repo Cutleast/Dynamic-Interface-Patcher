@@ -48,3 +48,29 @@ def is_file(path: Path) -> bool:
         return False
 
     return True
+
+
+def glob(base_path: str, pattern: str) -> list[Path]:
+    """
+    Custom implementation of `pathlib.Path.glob()` since
+    its known to be broken with Win 11 24H2.
+
+    Args:
+        base_path (str): The path to the base directory to search in.
+        pattern (str): The glob pattern to match (e.g., '*.json', '*.bin').
+
+    Returns:
+        list[Path]: A list of pathlib.Path objects that match the given pattern.
+    """
+
+    base_dir = Path(base_path)
+
+    if not is_dir(base_dir):
+        return []
+
+    matched_files: list[Path] = []
+    for item in base_dir.iterdir():
+        if item.match(pattern):
+            matched_files.append(item)
+
+    return matched_files

@@ -17,7 +17,7 @@ from PySide6.QtWidgets import QApplication
 from core.archive.archive import Archive
 from core.bsa import BSAArchive
 from core.config.config import Config
-from core.utilities.filesystem import is_dir, is_file
+from core.utilities.filesystem import glob, is_dir, is_file
 from core.utilities.path_splitter import split_path_with_bsa
 from core.utilities.xml_utils import beautify_xml, split_frames, unsplit_frames
 
@@ -63,7 +63,7 @@ class Patcher:
         self.log.info(f"Loading patch files from {str(self.patch_path)!r}...")
 
         # Scan for json files
-        for json_file in self.patch_path.glob("**\\*.json"):
+        for json_file in glob(self.patch_path, "**\\*.json"):
             self.patch_data[json_file] = json.loads(
                 json_file.read_text(encoding="utf8")
             )
@@ -71,7 +71,7 @@ class Patcher:
             self.log.debug(f"Loaded '{json_file}'.")
 
         # Scan for binary files
-        for bin_file in self.patch_path.glob("**\\*.bin"):
+        for bin_file in glob(self.patch_path, "**\\*.bin"):
             self.patch_data[bin_file] = None
             bin_file = bin_file.relative_to(self.patch_path)
             self.log.debug(f"Found binary patch '{bin_file}'.")
@@ -359,11 +359,11 @@ class Patcher:
 
         archive: Archive = Archive.load_archive(self.jre_archive_path)
 
-        if not list(archive.glob("*/bin/java.exe")):
+        if not list(glob(archive, "*/bin/java.exe")):
             raise Exception("Archive does not contain a valid java.exe!")
 
         archive.extract_all(tmp_folder)
-        java_path: Path = list(tmp_folder.glob("*/bin/java.exe"))[0]
+        java_path: Path = list(glob(tmp_folder, "*/bin/java.exe"))[0]
 
         self.log.info(f"Java Runtime extracted to '{java_path}'.")
         self.log.info("Setting up FFDec...")
@@ -427,8 +427,8 @@ class Patcher:
         if not is_dir(patch_path):
             return False
 
-        if not list(patch_path.glob("**/*.json")) and not list(
-            patch_path.glob("**/*.bin")
+        if not list(glob(patch_path, "**/*.json")) and not list(
+            glob(patch_path, "**/*.bin")
         ):
             return False
 
@@ -524,7 +524,7 @@ class Patcher:
         for path in paths_to_scan:
             self.log.debug(f"Searching in '{path}'...")
 
-            for folder in path.glob(".\\*DIP*\\Patch"):
+            for folder in glob(path, ".\\*DIP*\\Patch"):
                 patches.append(str(folder.parent))
 
         self.log.debug(f"Found {len(patches)} patches.")
