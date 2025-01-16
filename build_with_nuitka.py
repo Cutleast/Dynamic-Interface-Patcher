@@ -7,10 +7,11 @@ Build script for nuitka. Run with `python nuitka.py`.
 import os
 import shutil
 from pathlib import Path
+from xml.etree import ElementTree as ET
 
 # Application details
 APPNAME = "Dynamic Interface Patcher"
-VERSION = "2.1.5"
+VERSION = "2.1.5-beta"
 AUTHOR = "Cutleast"
 LICENSE = "GNU General Public License v3.0"
 DIST_FOLDER = Path("main.dist").resolve()
@@ -23,9 +24,10 @@ ADDITIONAL_ITEMS: dict[Path, Path] = {
     Path("res") / "ffdec": DIST_FOLDER / "ffdec",
     Path("res") / "jre.7z": DIST_FOLDER / "jre.7z",
     Path("res") / "xdelta": DIST_FOLDER / "xdelta",
+    Path("res") / "glob.dll": DIST_FOLDER / "glob.dll",
 }
 
-cmd = f'nuitka \
+cmd = f'.venv\\scripts\\nuitka \
 --msvc="latest" \
 --standalone \
 --windows-console-mode={CONSOLE_MODE} \
@@ -33,8 +35,8 @@ cmd = f'nuitka \
 --remove-output \
 --company-name="{AUTHOR}" \
 --product-name="{APPNAME}" \
---file-version="{VERSION}" \
---product-version="{VERSION}" \
+--file-version="{VERSION.split("-")[0]}" \
+--product-version="{VERSION.split("-")[0]}" \
 --file-description="{APPNAME}" \
 --copyright="{LICENSE}" \
 --nofollow-import-to=tkinter \
@@ -76,6 +78,31 @@ if OUTPUT_FOLDER.is_dir():
 
 print("Copying FOMOD...")
 shutil.copytree(FOMOD_FOLDER, OUTPUT_FOLDER, dirs_exist_ok=True)
+
+
+def update_fomod_version(info_xml_path: Path, new_version: str) -> None:
+    if not info_xml_path.is_file():
+        print(f"The file {info_xml_path} does not exist!")
+        return
+
+    try:
+        tree = ET.parse(info_xml_path)
+        root = tree.getroot()
+
+        version_element = root.find(".//Version")
+        if version_element is None:
+            print(f"Found no <Version> element in {info_xml_path}.")
+            return
+
+        version_element.text = new_version
+        tree.write(info_xml_path, encoding="utf-8", xml_declaration=True)
+
+        print(f"Updated version in {info_xml_path} to {new_version}.")
+    except ET.ParseError as e:
+        print(f"Failed to parse {info_xml_path}: {e}")
+
+
+update_fomod_version(OUTPUT_FOLDER / "info.xml", VERSION)
 
 print("Copying DIP...")
 shutil.copytree(DIST_FOLDER, OUTPUT_FOLDER / "DIP", dirs_exist_ok=True)
