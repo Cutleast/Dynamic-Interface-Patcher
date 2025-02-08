@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 import qtawesome as qta
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -151,9 +151,13 @@ class PatcherWidget(QWidget):
             "Repack BSA(s) (Warning! The original BSA(s) get(s) overwritten!) (Experimental, use at your own risk!)"
         )
         self.repack_checkbox.setChecked(self.config.repack_bsas)
+        self.repack_checkbox.checkStateChanged.connect(self.__on_repack_changed)
         vlayout.addWidget(self.repack_checkbox)
 
         self.__init_entries()
+
+    def __on_repack_changed(self, check_state: Qt.CheckState) -> None:
+        self.config.repack_bsas = self.repack_checkbox.isChecked()
 
     def __init_entries(self) -> None:
         self.patch_path_entry.addItems(self.patcher.get_patches())
