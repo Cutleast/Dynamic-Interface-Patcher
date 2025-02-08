@@ -1,7 +1,5 @@
 """
 Copyright (c) Cutleast
-
-Build script for nuitka. Run with `python nuitka.py`.
 """
 
 import os
@@ -11,7 +9,7 @@ from xml.etree import ElementTree as ET
 
 # Application details
 APPNAME = "Dynamic Interface Patcher"
-VERSION = "2.1.5-beta"
+VERSION = "2.1.5"
 AUTHOR = "Cutleast"
 LICENSE = "GNU General Public License v3.0"
 DIST_FOLDER = Path("main.dist").resolve()
