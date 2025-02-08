@@ -17,7 +17,7 @@ from PySide6.QtWidgets import QApplication
 from core.archive.archive import Archive
 from core.bsa import BSAArchive
 from core.config.config import Config
-from core.utilities.filesystem import is_dir, is_file
+from core.utilities.filesystem import is_dir, is_file, mkdir
 from core.utilities.glob import glob
 from core.utilities.path_splitter import split_path_with_bsa
 from core.utilities.xml_utils import beautify_xml, split_frames, unsplit_frames
@@ -48,7 +48,7 @@ class Patcher:
     swf_files: dict[Path, Path]
     tmp_path: Optional[Path] = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.config = QApplication.instance().config
         self.app_path = QApplication.instance().app_path
         self.cwd_path = QApplication.instance().cwd_path
@@ -79,7 +79,7 @@ class Patcher:
 
         self.log.info(f"Loaded {len(self.patch_data)} patch files.")
 
-    def patch_shapes(self):
+    def patch_shapes(self) -> None:
         for patch_file, patch_data in self.patch_data.items():
             if patch_data is None:
                 continue
@@ -109,7 +109,7 @@ class Patcher:
             if shapes:
                 self.ffdec_interface.replace_shapes(swf_file, shapes)
 
-    def copy_files(self):
+    def copy_files(self) -> None:
         """
         Copies all required files to patch to the temp folder.
         """
@@ -135,7 +135,8 @@ class Patcher:
             dest_path = self.get_tmp_dir() / mod_file
             if bsa_file is None:
                 if is_file(origin_path):
-                    os.makedirs(dest_path.parent, exist_ok=True)
+                    if not is_dir(dest_path.parent):
+                        mkdir(dest_path.parent)
                     shutil.copyfile(origin_path, dest_path)
 
                 # Skip missing SWF files
@@ -161,18 +162,18 @@ class Patcher:
 
         self.log.info("Mod files ready to patch.")
 
-    def convert_swfs2xmls(self):
+    def convert_swfs2xmls(self) -> None:
         for patch_file, swf_file in self.swf_files.items():
             if patch_file.suffix != ".bin":
                 self.ffdec_interface.swf2xml(swf_file)
 
-    def convert_xmls2swfs(self):
+    def convert_xmls2swfs(self) -> None:
         for patch_file, swf_file in self.swf_files.items():
             if patch_file.suffix != ".bin":
                 xml_file = swf_file.with_suffix(".xml")
                 self.ffdec_interface.xml2swf(xml_file)
 
-    def patch_xmls(self):
+    def patch_xmls(self) -> None:
         for key, value in self.patch_data.items():
             patch_file: Path = key
 
@@ -253,7 +254,8 @@ class Patcher:
         Stores path to BSAs with list of patched files.
         """
 
-        os.makedirs(output_folder, exist_ok=True)
+        if not is_dir(output_folder):
+            mkdir(output_folder)
 
         for file in self.patch_data.keys():
             bsa_file, mod_file = split_path_with_bsa(file)
@@ -333,7 +335,9 @@ class Patcher:
         else:
             for file in self.swf_files.values():
                 dest = output_path / file.relative_to(self.get_tmp_dir())
-                os.makedirs(dest.parent, exist_ok=True)
+
+                if not is_dir(dest.parent):
+                    mkdir(dest.parent)
 
                 # Backup already existing file
                 if is_file(dest):
@@ -349,7 +353,7 @@ class Patcher:
 
         self.log.info(f"Output written to '{output_path}'.")
 
-    def setup_jre(self):
+    def setup_jre(self) -> None:
         """
         Extracts Java Runtime from jre.7z and redirects FFDec to it.
         """
@@ -384,7 +388,7 @@ class Patcher:
 
         self.log.info("FFDec setup complete.")
 
-    def get_tmp_dir(self):
+    def get_tmp_dir(self) -> Path:
         if self.tmp_path is None:
             self.tmp_path = Path(tempfile.mkdtemp(prefix="DIP_"))
             self.log.debug(f"Created temporary directory at {str(self.tmp_path)!r}.")
@@ -524,10 +528,11 @@ class Patcher:
             self.log.debug(f"Searching in '{path}'...")
 
             for item in path.iterdir():
+                self.log.debug(f"Checking item {str(item)!r}...")
                 if not is_dir(item):
                     continue
 
-                if item.match("*DIP*") and (item / "Patch").is_dir():
+                if item.match("*DIP*") and is_dir(item / "Patch"):
                     patches.append(str(item))
 
         self.log.debug(f"Found {len(patches)} patches.")

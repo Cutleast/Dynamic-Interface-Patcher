@@ -6,8 +6,39 @@ See this issue for more information:
     https://github.com/ModOrganizer2/modorganizer/issues/2174
 """
 
-import os
 from pathlib import Path
+
+from PySide6.QtCore import QDir, QFile
+
+from .process_runner import run_process
+
+
+def file_path_to_qpath(path: str | Path) -> QFile:
+    """
+    Creates a `QFile` from a file path.
+
+    Args:
+        path (str | Path): Path to file
+
+    Returns:
+        QFile: QFile object
+    """
+
+    return QFile(str(path))
+
+
+def folder_path_to_qpath(path: str | Path) -> QDir:
+    """
+    Creates a `QDir` from a folder path.
+
+    Args:
+        path (str | Path): Path to folder
+
+    Returns:
+        QDir: QDir object
+    """
+
+    return QDir(str(path))
 
 
 def is_dir(path: Path) -> bool:
@@ -22,12 +53,7 @@ def is_dir(path: Path) -> bool:
         bool: True if the path exists, False otherwise
     """
 
-    try:
-        list(path.iterdir())
-    except (FileNotFoundError, NotADirectoryError):
-        return False
-
-    return True
+    return folder_path_to_qpath(path).exists()
 
 
 def is_file(path: Path) -> bool:
@@ -42,9 +68,21 @@ def is_file(path: Path) -> bool:
         bool: True if the path exists, False otherwise
     """
 
-    try:
-        os.stat(path)
-    except FileNotFoundError:
-        return False
+    qfile: QFile = file_path_to_qpath(path)
 
-    return True
+    return not is_dir(path) and qfile.exists()
+
+
+def mkdir(path: Path) -> None:
+    """
+    Creates a directory. Doesn't use `Path.mkdir()` since
+    its known to be broken with Win 11 24H2.
+
+    Args:
+        path (Path): Path to create
+    """
+
+    if not is_dir(path) and not is_file(path):
+        run_process(["mkdir", str(path).replace("/", "\\")])
+    elif is_file(path):
+        raise FileExistsError(f"{str(path)!r} already exists!")
