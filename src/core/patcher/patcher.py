@@ -121,9 +121,10 @@ class Patcher:
         file: Path
         bsa_file: Optional[Path]
         mod_file: Path
-        for file in list(self.patch_data.keys()):
+        for file, patch_data in self.patch_data.items():
             bsa_file, mod_file = split_path_with_bsa(file)
             mod_file = mod_file.with_suffix(".swf")
+            required: bool = not patch_data.get("optional")
 
             if bsa_file:
                 bsa_file = self.original_mod_path / bsa_file.name
@@ -139,7 +140,12 @@ class Patcher:
                         mkdir(dest_path.parent)
                     shutil.copyfile(origin_path, dest_path)
 
-                # Skip missing SWF files
+                elif required:
+                    raise FileNotFoundError(
+                        f"{str(origin_path)!r} is required but does not exist!"
+                    )
+
+                # Skip missing but optional SWF files
                 else:
                     self.log.warning(
                         f"{str(origin_path)!r} does not exist! Skipped patch file."
@@ -150,7 +156,12 @@ class Patcher:
                 bsa_archive = BSAArchive(bsa_file)
                 bsa_archive.extract_file(mod_file, self.get_tmp_dir())
 
-            # Skip missing BSA files
+            elif required:
+                raise FileNotFoundError(
+                    f"{str(bsa_file)!r} is required but does not exist!"
+                )
+
+            # Skip missing but optional BSA files
             else:
                 self.log.warning(
                     f"{str(bsa_file)!r} does not exist! Skipped patch file."
