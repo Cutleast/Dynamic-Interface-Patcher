@@ -38,7 +38,7 @@ class Patcher:
     cwd_path: Path
 
     jre_archive_path: Path
-    patch_data: dict[Path, dict]
+    patch_data: dict[Path, Optional[dict]]
     patch_path: Path
     shape_path: Path
     original_mod_path: Path
@@ -124,7 +124,7 @@ class Patcher:
         for file, patch_data in self.patch_data.items():
             bsa_file, mod_file = split_path_with_bsa(file)
             mod_file = mod_file.with_suffix(".swf")
-            required: bool = not patch_data.get("optional")
+            required: bool = patch_data is None or not patch_data.get("optional")
 
             if bsa_file:
                 bsa_file = self.original_mod_path / bsa_file.name
