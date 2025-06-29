@@ -92,7 +92,7 @@ class PatcherWidget(QWidget):
         self.patch_path_entry.currentTextChanged.connect(lambda _: self.__validate())
         patch_path_layout.addWidget(self.patch_path_entry)
         patch_path_button = QPushButton()
-        patch_path_button.setIcon(qta.icon("fa.folder-open", color="#ffffff"))
+        patch_path_button.setIcon(qta.icon("fa5s.folder-open", color="#ffffff"))
 
         def browse_patch_path():
             file_dialog = QFileDialog(QApplication.activeModalWidget())
@@ -126,7 +126,7 @@ class PatcherWidget(QWidget):
         self.mod_path_entry.currentTextChanged.connect(lambda _: self.__validate())
         mod_path_layout.addWidget(self.mod_path_entry)
         mod_path_button = QPushButton()
-        mod_path_button.setIcon(qta.icon("fa.folder-open", color="#ffffff"))
+        mod_path_button.setIcon(qta.icon("fa5s.folder-open", color="#ffffff"))
 
         def browse_mod_path():
             file_dialog = QFileDialog(QApplication.activeModalWidget())
