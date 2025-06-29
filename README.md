@@ -29,29 +29,31 @@ See [here](./OfficialPatches.md) for a list of released and planned patches.
 
 # Contributing
 
-### 1. Feedback (Suggestions/Issues)
+## Feedback (Suggestions/Issues)
 
 If you encountered an issue/error or you have a suggestion, create an issue under the "Issues" tab above.
 
-### 2. Code contributions
+## Code contributions
 
-1. Install Python 3.11 (Make sure that you add it to PATH!)
-2. Clone repository
-3. Open terminal in repository folder
-4. Type in following command to install all requirements (Using a virtual environment is strongly recommended!):
-   `pip install -r requirements.txt`
+### 1. Install requirements
 
-### 3. Execute from source
+1. Install [Python 3.12+](https://www.python.org/downloads/) (Make sure that you add it to PATH!)
+2. Install [uv](https://github.com/astral-sh/uv#installation)
+3. Clone repository
+4. Open a terminal in the cloned repository folder
+5. Run the following command to init your local environment and to install all dependencies
+   `uv sync`
 
-1. Open terminal in src folder
-2. Execute main file
-   `python main.py`
+### 2. Execute from source
 
-### 4. Compile and build executable
+1. Open a terminal in the root folder of this repo
+2. Execute main file with uv
+   `uv run src\main.py`
 
-1. Follow the steps on this page [Nuitka.net](https://nuitka.net/doc/user-manual.html#usage) to install a C Compiler
-2. Run `build.bat` with activated virtual environment from the root folder of this repo.
-3. The executable and all dependencies are built in the main.dist-Folder.
+### 3. Compile and build executable
+
+1. Run `build.bat` from the root folder of this repo.
+2. The executable and all dependencies are built in the `dist/DIP`-Folder and get packed in a `dist/Dynamic Interface Patcher v[version].7z`.
 
 # How it works
 

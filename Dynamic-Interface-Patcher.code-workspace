@@ -1,0 +1,100 @@
+{
+	"folders": [
+		{
+			"name": "Dynamic-Interface-Patcher",
+			"path": "."
+		},
+		{
+			"name": "Dynamic-Interface-Construction-Kit",
+			"path": "../Dynamic-Interface-Construction-Kit"
+		}
+	],
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "compile-qrc",
+				"type": "shell",
+				"command": "${workspaceFolder}/compile_qrc.bat",
+				"problemMatcher": [],
+				"detail": "Compiles Qt resources into a usable Python module."
+			},
+			{
+				"label": "run-main",
+				"type": "shell",
+				"command": "${workspaceFolder:Dynamic-Interface-Patcher}/.venv/scripts/python",
+				"args": [
+					"${workspaceFolder:Dynamic-Interface-Patcher}/src/main.py"
+				],
+				"dependsOn": [
+					"compile-qrc"
+				],
+				"options": {
+					"cwd": "${workspaceFolder:Dynamic-Interface-Patcher}/res"
+				},
+				"detail": "Runs main.py without debugger.",
+				"problemMatcher": []
+			},
+			{
+				"label": "deploy",
+				"type": "shell",
+				"command": "${workspaceFolder:Dynamic-Interface-Patcher}/build.bat",
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"detail": "Builds the executable.",
+			},
+		]
+	},
+	"settings": {
+		"editor.formatOnSave": true,
+		"[qss]": {
+			"editor.defaultFormatter": "vscode.css-language-features"
+		},
+		"[python]": {
+			"editor.codeActionsOnSave": {
+				"source.organizeImports.ruff": "explicit",
+			},
+		},
+		"files.associations": {
+			"*.ts": "xml",
+			"*.qrc": "xml"
+		},
+		"python.testing.pytestArgs": [
+			"--ignore-glob=experiments/**/*.py",
+			"--ignore-glob=src/**/*.py",
+			"--log-level=DEBUG",
+			"-vv"
+		],
+		"python.testing.pytestEnabled": true,
+		"python.testing.unittestEnabled": false,
+		"xml.format.maxLineWidth": 0,
+		"python.analysis.autoFormatStrings": true,
+		"python.analysis.autoImportCompletions": true,
+		"python.analysis.diagnosticMode": "workspace",
+		"python.analysis.generateWithTypeAnnotation": true,
+		"python.analysis.languageServerMode": "full",
+		"python.analysis.typeCheckingMode": "strict",
+		"python.analysis.stubPath": "stubs",
+		"git.diagnosticsCommitHook.Enabled": true,
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Debug DIP",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${workspaceFolder:Dynamic-Interface-Patcher}/src/main.py",
+				"console": "internalConsole",
+				"cwd": "${workspaceFolder:Dynamic-Interface-Patcher}/res",
+				"args": [
+					"--debug"
+				],
+				"preLaunchTask": "compile-qrc"
+			}
+		],
+		"compounds": []
+	}
+}
