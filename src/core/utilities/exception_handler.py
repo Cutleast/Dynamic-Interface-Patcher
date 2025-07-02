@@ -86,5 +86,5 @@ class ExceptionHandler(QObject):
 
         choice = error_dialog.exec()
 
-        if choice == ErrorDialog.StandardButton.No:
+        if choice == ErrorDialog.DialogCode.Accepted:
             self.__parent.exit()
