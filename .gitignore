@@ -8,6 +8,7 @@
 /.venv
 /.vscode
 /nuitka-crash-report.xml
+/res/ffdec/ffdec.bat
 __pycache__
 *.old
 *.prof
