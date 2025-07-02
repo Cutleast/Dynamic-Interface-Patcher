@@ -6,7 +6,7 @@ import os
 
 import qtawesome as qta
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QAction, QColor
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -39,11 +39,11 @@ class MainWindow(QMainWindow):
         # Menu Bar
         help_menu = self.menuBar().addMenu("Help")
 
-        about_action = help_menu.addAction("About")
+        about_action: QAction = help_menu.addAction("About")
         about_action.setIcon(qta.icon("fa5s.info-circle", color="#ffffff"))
         about_action.triggered.connect(self.about)
 
-        about_qt_action = help_menu.addAction("About Qt")
+        about_qt_action: QAction = help_menu.addAction("About Qt")
         about_qt_action.triggered.connect(self.about_qt)
 
         # Fix link color
@@ -128,7 +128,7 @@ Licensed under GNU General Public License v3.0
         licenses_tab = QListWidget()
         tab_widget.addTab(licenses_tab, "Used Software")
 
-        licenses_tab.addItems(LICENSES.keys())
+        licenses_tab.addItems(list(LICENSES.keys()))
 
         licenses_tab.itemDoubleClicked.connect(
             lambda item: os.startfile(LICENSES[item.text()])
