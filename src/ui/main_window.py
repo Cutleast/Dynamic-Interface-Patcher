@@ -20,7 +20,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.config.config import Config
+from core.patcher.patcher import Patcher
 from core.utilities.licenses import LICENSES
+from core.utilities.logger import Logger
 
 from .main_widget import MainWidget
 
@@ -30,10 +33,10 @@ class MainWindow(QMainWindow):
     Class for main patcher window.
     """
 
-    def __init__(self):
+    def __init__(self, logger: Logger, config: Config, patcher: Patcher):
         super().__init__()
 
-        self.setCentralWidget(MainWidget())
+        self.setCentralWidget(MainWidget(logger, config, patcher))
         self.resize(1000, 600)
 
         # Menu Bar

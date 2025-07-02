@@ -3,12 +3,13 @@ Copyright (c) Cutleast
 """
 
 import logging
-import os
+import platform
+import subprocess
 import sys
 from argparse import Namespace
 from pathlib import Path
+from typing import override
 
-from PySide6.QtCore import Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
@@ -43,18 +44,12 @@ class App(QApplication):
     main_window: MainWindow
     patcher: Patcher
 
-    ready_signal = Signal()
-    """
-    This signal gets emitted when the application is ready.
-    """
-
     def __init__(self, args: Namespace):
         super().__init__()
 
         self.args = args
         self.config = Config.load(self.cwd_path / "config")
         self.config.apply_from_namespace(args)
-        self.patcher = Patcher()
 
         self.logger = Logger(
             self.log_path,
@@ -63,46 +58,44 @@ class App(QApplication):
         )
         self.logger.setLevel(Logger.Level.Debug)
 
-        self.apply_args_to_config()
-
-        if self.config.debug_mode:
-            self.config.print_settings_to_log()
-
-        self.setApplicationName(self.APP_NAME)
-        self.setApplicationDisplayName(self.APP_NAME)
-        self.setApplicationVersion(self.APP_VERSION)
+        self.setApplicationName(App.APP_NAME)
+        self.setApplicationDisplayName(App.APP_NAME)
+        self.setApplicationVersion(App.APP_VERSION)
         self.setStyleSheet(read_resource(":/style.qss"))
         self.setWindowIcon(QIcon(":/icons/icon.ico"))
 
-        self.log.info(f"Current working directory: {self.cwd_path}")
-        self.log.info(f"Executable location: {self.app_path}")
-        self.log.info("Program started!")
+        self.log_basic_info()
+        self.config.print_settings_to_log()
+        self.log.info("App started!")
 
-        self.root = MainWindow()
+        self.exception_handler = ExceptionHandler(self)
+        self.patcher = Patcher(self.config)
+        self.main_window = MainWindow(self.logger, self.config, self.patcher)
 
-    def apply_args_to_config(self) -> None:
-        if self.args.debug:
-            self.config.debug_mode = True
-            self.log.info("Debug mode enabled.")
+    def log_basic_info(self) -> None:
+        """
+        Logs basic information.
+        """
 
-        if self.args.silent:
-            self.config.silent = True
+        width = 100
+        log_title = f" {App.APP_NAME} ".center(width, "=")
+        self.log.info(f"\n{'=' * width}\n{log_title}\n{'=' * width}")
+        self.log.info(f"Program Version: {App.APP_VERSION}")
+        self.log.info(f"Executed command: {subprocess.list2cmdline(sys.argv)}")
+        self.log.info(f"Current Path: {self.app_path}")
+        self.log.info(f"Working Directory: {self.cwd_path}")
+        self.log.info(f"Log Path: {self.log_path}")
+        self.log.info(
+            "Detected Platform: "
+            f"{platform.system()} {platform.version()} {platform.architecture()[0]}"
+        )
 
-        if self.args.repack_bsa:
-            self.config.repack_bsas = True
-
-        if self.args.output_path:
-            self.config.output_folder = Path(self.args.output_path)
-
-    def exec(self) -> int:
-        silent: bool = (
-            self.args.patchpath and self.args.originalpath
-        ) and self.args.silent
+    @override
+    def exec(self) -> int:  # type: ignore
+        silent: bool = self.config.auto_patch and self.config.silent
 
         if not silent:
-            self.root.show()
-
-        self.ready_signal.emit()
+            self.main_window.show()
 
         retcode: int = super().exec()
 

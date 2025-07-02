@@ -12,13 +12,13 @@ from pathlib import Path
 from typing import Any, Optional
 
 import jstyleson as json
-from PySide6.QtWidgets import QApplication
 from sse_bsa import BSAArchive
 
 from core.archive.archive import Archive
 from core.cli_interface.ffdec import FFDecInterface
 from core.cli_interface.xdelta import XDeltaInterface
 from core.config.config import Config
+from core.utilities.exe_info import get_current_path
 from core.utilities.filesystem import is_dir, is_file, mkdir
 from core.utilities.glob import glob
 from core.utilities.path_splitter import split_path_with_bsa
@@ -33,10 +33,10 @@ class Patcher:
     log: logging.Logger = logging.getLogger("Patcher")
 
     config: Config
-    app_path: Path
-    cwd_path: Path
+    app_path: Path = get_current_path()
+    cwd_path: Path = Path.cwd()
+    jre_archive_path: Path = app_path / "jre.7z"
 
-    jre_archive_path: Path
     patch_data: dict[Path, Optional[dict]]
     patch_path: Path
     shape_path: Path
@@ -47,12 +47,8 @@ class Patcher:
     swf_files: dict[Path, Path]
     tmp_path: Optional[Path] = None
 
-    def __init__(self) -> None:
-        self.config = QApplication.instance().config
-        self.app_path = QApplication.instance().app_path
-        self.cwd_path = QApplication.instance().cwd_path
-
-        self.jre_archive_path = self.app_path / "jre.7z"
+    def __init__(self, config: Config) -> None:
+        self.config = config
 
         self.ffdec_interface = FFDecInterface()
         self.xdelta_interface = XDeltaInterface()
