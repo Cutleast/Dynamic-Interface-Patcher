@@ -31,17 +31,14 @@ class App(QApplication):
     args: Namespace
     config: Config
 
+    app_path: Path = get_current_path()
+    cwd_path: Path = Path.cwd()
+
     log: logging.Logger = logging.getLogger("App")
     stdout_handler: StdoutHandler
     exception_handler: ExceptionHandler
 
-    app_path: Path = (
-        Path(sys.executable if getattr(sys, "frozen", False) else __file__)
-        .resolve()
-        .parent
-    )
-    cwd_path: Path = Path(os.getcwd())
-
+    main_window: MainWindow
     patcher: Patcher
 
     ready_signal = Signal()
