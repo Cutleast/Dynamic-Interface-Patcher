@@ -4,15 +4,16 @@ Copyright (c) Cutleast
 
 import logging
 import os
+from abc import ABC, abstractmethod
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication
 from virtual_glob import InMemoryPath, glob
 
+from core.utilities.exe_info import get_current_path
 from core.utilities.process_runner import run_process
 
 
-class Archive:
+class Archive(ABC):
     """
     Base class for archives.
 
@@ -21,15 +22,15 @@ class Archive:
 
     log = logging.getLogger("Archiver")
 
+    _bin_path = get_current_path() / "7-zip" / "7z.exe"
+
     __files: list[str] | None = None
 
-    bin_path: Path
-
     def __init__(self, path: Path):
-        self.bin_path = QApplication.instance().app_path / "7-zip" / "7z.exe"
         self.path = path
 
     @property
+    @abstractmethod
     def files(self) -> list[str]:
         """
         Gets a list of files in the archive.
@@ -37,8 +38,6 @@ class Archive:
         Returns:
             list[str]: List of filenames, relative to archive root.
         """
-
-        raise NotImplementedError
 
     def get_files(self) -> list[str]:
         """
@@ -64,7 +63,7 @@ class Archive:
         """
 
         cmd: list[str] = [
-            str(self.bin_path),
+            str(Archive._bin_path),
             "x" if full_paths else "e",
             str(self.path),
             f"-o{dest}",
@@ -89,7 +88,7 @@ class Archive:
         """
 
         cmd: list[str] = [
-            str(self.bin_path),
+            str(Archive._bin_path),
             "x" if full_paths else "e",
             f"-o{dest}",
             "-aoa",
@@ -121,7 +120,7 @@ class Archive:
             return
 
         cmd: list[str] = [
-            str(self.bin_path),
+            str(Archive._bin_path),
             "x" if full_paths else "e",
             f"-o{dest}",
             "-aoa",
