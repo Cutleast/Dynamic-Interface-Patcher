@@ -15,8 +15,9 @@ from PySide6.QtWidgets import QApplication
 from core.config.config import Config
 from core.patcher.patcher import Patcher
 from core.utilities.exception_handler import ExceptionHandler
+from core.utilities.exe_info import get_current_path
+from core.utilities.logger import Logger
 from core.utilities.qt_res_provider import read_resource
-from core.utilities.stdout_handler import StdoutHandler
 from ui.main_window import MainWindow
 
 
@@ -35,7 +36,8 @@ class App(QApplication):
     cwd_path: Path = Path.cwd()
 
     log: logging.Logger = logging.getLogger("App")
-    stdout_handler: StdoutHandler
+    logger: Logger
+    log_path: Path = cwd_path / "DIP.log"
     exception_handler: ExceptionHandler
 
     main_window: MainWindow
@@ -53,20 +55,12 @@ class App(QApplication):
         self.config = Config(Path(os.getcwd()) / "config")
         self.patcher = Patcher()
 
-        log_format = "[%(asctime)s.%(msecs)03d]"
-        log_format += "[%(levelname)s]"
-        log_format += "[%(name)s.%(funcName)s]: "
-        log_format += "%(message)s"
-        self.log_format = logging.Formatter(log_format, datefmt="%d.%m.%Y %H:%M:%S")
-        self.stdout_handler = StdoutHandler(self)
-        self.exception_handler = ExceptionHandler(self)
-        self.log_str = logging.StreamHandler(self.stdout_handler)
-        self.log_str.setFormatter(self.log_format)
-        self.log_level = 10  # Debug level
-        self.log.setLevel(self.log_level)
-        root_log = logging.getLogger()
-        root_log.addHandler(self.log_str)
-        root_log.setLevel(self.log_level)
+        self.logger = Logger(
+            self.log_path,
+            fmt="[%(asctime)s.%(msecs)03d][%(levelname)s][%(name)s.%(funcName)s]: %(message)s",
+            date_fmt="%d.%m.%Y %H:%M:%S",
+        )
+        self.logger.setLevel(Logger.Level.Debug)
 
         self.apply_args_to_config()
 
