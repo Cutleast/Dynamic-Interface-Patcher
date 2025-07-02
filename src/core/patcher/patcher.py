@@ -209,7 +209,9 @@ class Patcher:
             data = Patcher.process_patch_data(patch_data)
 
             if self.config.debug_mode:
-                _debug_json = (Path(".") / f"{xml_file.stem}.json").resolve()
+                output_folder: Path = self.config.output_folder or self.cwd_path.parent
+                output_folder.mkdir(parents=True, exist_ok=True)
+                _debug_json = (output_folder / f"{xml_file.stem}.json").resolve()
                 with open(_debug_json, "w", encoding="utf8") as file:
                     file.write(json.dumps(data, indent=4))
 
@@ -245,7 +247,9 @@ class Patcher:
 
             # Optional debug XML file
             if self.config.debug_mode:
-                _debug_xml = (Path(".") / f"{xml_file.name}").resolve()
+                output_folder: Path = self.config.output_folder or self.cwd_path.parent
+                output_folder.mkdir(parents=True, exist_ok=True)
+                _debug_xml = (output_folder / f"{xml_file.name}").resolve()
                 with open(_debug_xml, "w", encoding="utf8") as file:
                     file.write(
                         beautify_xml(
