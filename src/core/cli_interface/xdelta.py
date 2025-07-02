@@ -6,8 +6,7 @@ import logging
 import os
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication
-
+from core.utilities.exe_info import get_current_path
 from core.utilities.process_runner import run_process
 
 
@@ -17,10 +16,7 @@ class XDeltaInterface:
     """
 
     log: logging.Logger = logging.getLogger("xdelta")
-    bin_path: Path
-
-    def __init__(self):
-        self.bin_path = QApplication.instance().app_path / "xdelta" / "xdelta.exe"
+    bin_path: Path = get_current_path() / "xdelta" / "xdelta.exe"
 
     def patch_file(self, original_file_path: Path, xdelta_file_path: Path):
         self.log.info(f"Patching {original_file_path.name!r} with xdelta...")

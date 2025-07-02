@@ -5,8 +5,7 @@ Copyright (c) Cutleast
 import logging
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication
-
+from core.utilities.exe_info import get_current_path
 from core.utilities.filesystem import is_file
 from core.utilities.process_runner import run_process
 
@@ -17,10 +16,7 @@ class FFDecInterface:
     """
 
     log: logging.Logger = logging.getLogger("FFDecInterface")
-    bin_path: Path
-
-    def __init__(self):
-        self.bin_path = QApplication.instance().app_path / "ffdec" / "ffdec.bat"
+    bin_path: Path = get_current_path() / "ffdec" / "ffdec.bat"
 
     def replace_shapes(self, swf_file: Path, shapes: dict[Path, list[int]]) -> None:
         """

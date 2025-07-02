@@ -16,14 +16,13 @@ from PySide6.QtWidgets import QApplication
 from sse_bsa import BSAArchive
 
 from core.archive.archive import Archive
+from core.cli_interface.ffdec import FFDecInterface
+from core.cli_interface.xdelta import XDeltaInterface
 from core.config.config import Config
 from core.utilities.filesystem import is_dir, is_file, mkdir
 from core.utilities.glob import glob
 from core.utilities.path_splitter import split_path_with_bsa
 from core.utilities.xml_utils import beautify_xml, split_frames, unsplit_frames
-
-from .ffdec import FFDecInterface
-from .xdelta import XDeltaInterface
 
 
 class Patcher:
