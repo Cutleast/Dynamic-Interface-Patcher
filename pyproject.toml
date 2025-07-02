@@ -10,7 +10,6 @@ dependencies = [
     "jstyleson",
     "lz4",
     "py7zr",
-    "pyperclip",
     "pyside6",
     "qtawesome",
     "qtpy",

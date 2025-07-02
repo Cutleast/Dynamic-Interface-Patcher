@@ -2,7 +2,6 @@
 Copyright (c) Cutleast
 """
 
-import pyperclip as clipboard
 import qtawesome as qta
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextCursor
@@ -103,7 +102,7 @@ class MainWidget(QWidget):
         copy_log_button.setIcon(qta.icon("mdi6.content-copy", color="#ffffff"))
         copy_log_button.setToolTip("Copy Log to Clipboard")
         copy_log_button.clicked.connect(
-            lambda: clipboard.copy(self.protocol_widget.toPlainText())
+            lambda: QApplication.clipboard().setText(self.protocol_widget.toPlainText())
         )
         hlayout.addWidget(copy_log_button)
 

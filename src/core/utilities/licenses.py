@@ -8,7 +8,6 @@ LICENSES = {
     "jstyleson": "https://github.com/linjackson78/jstyleson/blob/master/LICENSE",
     "lz4": "https://github.com/python-lz4/python-lz4/blob/master/LICENSE",
     "py7zr": "https://github.com/miurahr/py7zr/blob/master/LICENSE",
-    "pyperclip": "https://github.com/asweigart/pyperclip/blob/master/LICENSE.txt",
     "Qt6": "https://doc.qt.io/qt-6/lgpl.html",
     "qtawesome": "https://github.com/spyder-ide/qtawesome/blob/master/LICENSE.txt",
     "qtpy": "https://github.com/spyder-ide/qtpy/blob/master/LICENSE.txt",

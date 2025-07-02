@@ -202,7 +202,6 @@ dependencies = [
     { name = "jstyleson" },
     { name = "lz4" },
     { name = "py7zr" },
-    { name = "pyperclip" },
     { name = "pyside6" },
     { name = "qtawesome" },
     { name = "qtpy" },
@@ -227,7 +226,6 @@ requires-dist = [
     { name = "jstyleson" },
     { name = "lz4" },
     { name = "py7zr" },
-    { name = "pyperclip" },
     { name = "pyside6" },
     { name = "qtawesome" },
     { name = "qtpy" },
@@ -622,12 +620,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/f2/c9/1f2cbc57500804e34
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3c/8a/2a7e3fa933738f3fa7baa475a678c8f3d81b76c7183c520bcbab43335086/pyinstaller_versionfile-3.0.1-py3-none-any.whl", hash = "sha256:e42fa7bb8464c2100cf1583753ece51ad8ceaf8cded28d046cd22809efb10d8c", size = 16327, upload-time = "2025-04-14T17:32:09.191Z" },
 ]
-
-[[package]]
-name = "pyperclip"
-version = "1.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/30/23/2f0a3efc4d6a32f3b63cdff36cd398d9701d26cda58e3ab97ac79fb5e60d/pyperclip-1.9.0.tar.gz", hash = "sha256:b7de0142ddc81bfc5c7507eea19da920b92252b548b96186caf94a5e2527d310", size = 20961, upload-time = "2024-06-18T20:38:48.401Z" }
 
 [[package]]
 name = "pyppmd"
