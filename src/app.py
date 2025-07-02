@@ -52,7 +52,8 @@ class App(QApplication):
         super().__init__()
 
         self.args = args
-        self.config = Config(Path(os.getcwd()) / "config")
+        self.config = Config.load(self.cwd_path / "config")
+        self.config.apply_from_namespace(args)
         self.patcher = Patcher()
 
         self.logger = Logger(

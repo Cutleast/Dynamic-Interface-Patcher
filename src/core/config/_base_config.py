@@ -2,116 +2,126 @@
 Copyright (c) Cutleast
 """
 
+from __future__ import annotations
+
 import logging
-import os
+from abc import abstractmethod
+from argparse import Namespace
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, TypeVar
 
-import jstyleson as json  # type: ignore
+import jstyleson as json
+from pydantic import BaseModel, ConfigDict
 
-from core.utilities.filesystem import is_file
-from core.utilities.qt_res_provider import load_json_resource
+from core.utilities.cache import cache
+
+T = TypeVar("T", bound="BaseConfig")
 
 
-class BaseConfig:
+class BaseConfig(BaseModel):
     """
     Base class for app configurations.
     """
 
-    log: logging.Logger = logging.getLogger("BaseConfig")
+    model_config = ConfigDict(validate_assignment=True)
 
     _config_path: Path
-    _default_settings: dict[str, Any]
-    _settings: dict[str, Any]
 
-    def __init__(self, config_path: Path):
-        self._config_path = config_path
+    @classmethod
+    def load(cls: type[T], user_config_path: Path) -> T:
+        """
+        Loads configuration.
 
-        # Load default config values from resources
-        self._default_settings = load_json_resource(
-            f":/default_configs/{config_path.name}"
+        Args:
+            user_config_path (Path): Path to folder with user configuration.
+
+        Returns:
+            T: Loaded configuration.
+        """
+
+        user_config_file_path: Path = user_config_path / cls.get_config_name()
+
+        cls._get_logger().info(
+            f"Loading configuration from '{user_config_file_path}'..."
         )
 
-        self.load()
+        config_data: dict[str, Any] = {}
+        if user_config_file_path.is_file():
+            config_data = json.loads(user_config_file_path.read_text(encoding="utf8"))
 
-    def load(self) -> None:
-        """
-        Loads configuration from JSON File, if existing.
-        """
+        try:
+            config: T = cls.model_validate(config_data)
+        except Exception as ex:
+            cls._get_logger().error(
+                f"Failed to process user configuration: {ex}", exc_info=ex
+            )
+            config = cls.model_validate({})
 
-        if is_file(self._config_path):
-            with self._config_path.open("r", encoding="utf8") as file:
-                self._settings = self._default_settings | json.load(file)
+        config._config_path = user_config_path
 
-            for key in self._settings:
-                if key not in self._default_settings:
-                    self.log.warning(
-                        f"Unknown setting detected in {self._config_path.name}: {key!r}"
-                    )
-        else:
-            self._settings = self._default_settings.copy()
+        cls._get_logger().info("Configuration loaded.")
+        config.print_settings_to_log()
+
+        return config
 
     def save(self) -> None:
         """
-        Saves non-default configuration values to JSON File, creating it if not existing.
+        Saves configuration.
         """
 
-        changed_values: dict[str, Any] = {
-            key: item
-            for key, item in self._settings.items()
-            if item != self._default_settings.get(key)
-        }
+        user_config_file_path: Path = self._config_path / self.get_config_name()
 
-        # Create config folder if it doesn't exist
-        os.makedirs(self._config_path.parent, exist_ok=True)
+        self._get_logger().info(f"Saving configuration to '{user_config_file_path}'...")
 
-        with self._config_path.open("w", encoding="utf8") as file:
-            json.dump(changed_values, file, indent=4, ensure_ascii=False)
+        user_config_file_path.parent.mkdir(parents=True, exist_ok=True)
+        serialized: str = self.model_dump_json(
+            indent=4, by_alias=True, exclude_defaults=True
+        )
+        if serialized != r"{}":
+            user_config_file_path.write_text(serialized, encoding="utf8")
+            self._get_logger().info("Configuration saved.")
+        else:
+            user_config_file_path.unlink(missing_ok=True)
+            self._get_logger().info("Deleted empty configuration file.")
 
     @staticmethod
-    def validate_value(value: Any, valid_values: Iterable[Any]) -> None:
+    @abstractmethod
+    def get_config_name() -> str:
         """
-        Validates a value by checking it against an iterable of valid values.
+        Returns the name of the configuration file.
+
+        Returns:
+            str: Name of the configuration file.
+        """
+
+    @abstractmethod
+    def apply_from_namespace(self, namespace: Namespace) -> None:
+        """
+        Applies configuration from command line arguments.
 
         Args:
-            value (Any): Value to validate.
-            valid_values (Iterable[Any]): Iterable containing valid values.
-
-        Raises:
-            ValueError: When the value is not a valid value.
+            namespace (Namespace): Command line arguments.
         """
 
-        if value not in list(valid_values):
-            raise ValueError(f"{value!r} is not a valid value!")
-
-    @staticmethod
-    def validate_type(value: Any, type: type) -> None:
+    @classmethod
+    @cache
+    def _get_logger(cls) -> logging.Logger:
         """
-        Validates if value is of a certain type.
+        Returns the config's logger.
 
-        Args:
-            value (Any): Value to validate.
-            type (type): Type the value should have.
-
-        Raises:
-            TypeError: When the value is not of the specified type.
+        Returns:
+            logging.Logger: Config's logger.
         """
 
-        if not isinstance(value, type):
-            raise TypeError(f"Value must be of type {type}!")
+        return logging.getLogger(cls.__name__)
 
     def print_settings_to_log(self) -> None:
         """
         Prints current settings to log.
         """
 
-        self.log.info("Current Configuration:")
-        for key, item in self._settings.items():
-            self.log.info(f"{key:>25} = {item!r}")
-
-    # Context Manager methods
-    def __enter__(self) -> "BaseConfig":
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_tb) -> None:
-        self.save()
+        self._get_logger().info("Current Configuration:")
+        keys: list[str] = list(self.__pydantic_fields__.keys())
+        indent: int = max(len(key) + 1 for key in keys)
+        for key in keys:
+            self._get_logger().info(f"{key.rjust(indent)} = {getattr(self, key)!r}")

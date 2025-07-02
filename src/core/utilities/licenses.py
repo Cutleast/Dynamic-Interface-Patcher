@@ -11,6 +11,7 @@ LICENSES = {
     "Qt6": "https://doc.qt.io/qt-6/lgpl.html",
     "qtawesome": "https://github.com/spyder-ide/qtawesome/blob/master/LICENSE.txt",
     "qtpy": "https://github.com/spyder-ide/qtpy/blob/master/LICENSE.txt",
+    "pydantic": "https://github.com/pydantic/pydantic/blob/main/LICENSE",
     "PySide6": "https://code.qt.io/cgit/pyside/pyside-setup.git/tree/LICENSES?h=6.6.1",
     "rarfile": "https://github.com/markokr/rarfile/blob/master/LICENSE",
     "unrar": "https://github.com/matiasb/python-unrar/blob/master/LICENSE.txt",
