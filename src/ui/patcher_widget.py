@@ -196,7 +196,7 @@ class PatcherWidget(QWidget):
             self,
         )
         self.patcher_thread.finished.connect(self.on_done)
-        self.patcher_thread.start(block=False)
+        self.patcher_thread.start()
 
     def on_done(self) -> None:
         # Check if thread was terminated externally
