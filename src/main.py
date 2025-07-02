@@ -5,7 +5,7 @@ Copyright (c) Cutleast
 import sys
 from argparse import ArgumentParser, Namespace
 
-import resources_rc  # noqa: F401
+import resources_rc  # type: ignore # noqa: F401
 from app import App
 
 
