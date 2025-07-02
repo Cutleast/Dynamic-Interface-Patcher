@@ -15,6 +15,7 @@ dependencies = [
     "qtawesome",
     "qtpy",
     "rarfile",
+    "sse-bsa",
     "virtual-glob",
 ]
 

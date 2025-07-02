@@ -207,6 +207,7 @@ dependencies = [
     { name = "qtawesome" },
     { name = "qtpy" },
     { name = "rarfile" },
+    { name = "sse-bsa" },
     { name = "virtual-glob" },
 ]
 
@@ -231,6 +232,7 @@ requires-dist = [
     { name = "qtawesome" },
     { name = "qtpy" },
     { name = "rarfile" },
+    { name = "sse-bsa" },
     { name = "virtual-glob" },
 ]
 
@@ -878,6 +880,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5e/b0/75b86ee3f7b044e6a87fbe7abefd1948ca4ae5fcde8321f4986a1d9eaa5e/shiboken6-6.9.1-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:efcf75d48a29ae072d0bf54b3cd5a59ae91bb6b3ab7459e17c769355486c2e0b", size = 203233, upload-time = "2025-06-03T13:16:48.264Z" },
     { url = "https://files.pythonhosted.org/packages/30/56/00af281275aab4c79e22e0ea65feede0a5c6da3b84e86b21a4a0071e0744/shiboken6-6.9.1-cp39-abi3-win_amd64.whl", hash = "sha256:209ccf02c135bd70321143dcbc5023ae0c056aa4850a845955dd2f9b2ff280a9", size = 1153587, upload-time = "2025-06-03T13:16:50.454Z" },
     { url = "https://files.pythonhosted.org/packages/de/ce/6ccd382fbe1a96926c5514afa6f2c42da3a9a8482e61f8dfc6068a9ca64f/shiboken6-6.9.1-cp39-abi3-win_arm64.whl", hash = "sha256:2a39997ce275ced7853defc89d3a1f19a11c90991ac6eef3435a69bb0b7ff1de", size = 1831623, upload-time = "2025-06-03T13:16:52.468Z" },
+]
+
+[[package]]
+name = "sse-bsa"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lz4" },
+    { name = "virtual-glob" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c7/18/dcd802946ac66057486b25c07395089e59251a9ce94a7401a971e570ab9b/sse_bsa-1.0.2.tar.gz", hash = "sha256:00ddf879d2ee145bdd33bca6018990512c3159a67f23758f726a87de8c452a07", size = 1069152, upload-time = "2025-01-26T19:49:04.104Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/b2/36981cfb8690f510394f65b874be07017c0eba214ba1a10c3f13a66aad20/sse_bsa-1.0.2-py3-none-any.whl", hash = "sha256:e07004e185d58dab2624675e4340d6030de55a4d140503a9aa099585bf5a0888", size = 15653, upload-time = "2025-01-26T19:48:59.938Z" },
 ]
 
 [[package]]

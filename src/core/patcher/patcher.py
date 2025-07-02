@@ -13,9 +13,9 @@ from typing import Any, Optional
 
 import jstyleson as json
 from PySide6.QtWidgets import QApplication
+from sse_bsa import BSAArchive
 
 from core.archive.archive import Archive
-from core.bsa import BSAArchive
 from core.config.config import Config
 from core.utilities.filesystem import is_dir, is_file, mkdir
 from core.utilities.glob import glob
