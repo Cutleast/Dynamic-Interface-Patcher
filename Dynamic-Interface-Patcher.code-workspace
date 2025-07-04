@@ -78,6 +78,7 @@
 		"python.analysis.typeCheckingMode": "strict",
 		"python.analysis.stubPath": "stubs",
 		"git.diagnosticsCommitHook.Enabled": true,
+		"python.testing.autoTestDiscoverOnSaveEnabled": true
 	},
 	"launch": {
 		"version": "0.2.0",
@@ -90,7 +91,9 @@
 				"console": "internalConsole",
 				"cwd": "${workspaceFolder:Dynamic-Interface-Patcher}/res",
 				"args": [
-					"--debug"
+					"--debug",
+					"-o",
+					"${workspaceFolder:Dynamic-Interface-Patcher}/experiments/patch_output"
 				],
 				"preLaunchTask": "compile-qrc"
 			}

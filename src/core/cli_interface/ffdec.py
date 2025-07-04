@@ -5,8 +5,10 @@ Copyright (c) Cutleast
 import logging
 from pathlib import Path
 
+from core.archive.archive import Archive
 from core.utilities.exe_info import get_current_path
 from core.utilities.filesystem import is_file
+from core.utilities.glob import glob
 from core.utilities.process_runner import run_process
 
 
@@ -16,7 +18,9 @@ class FFDecInterface:
     """
 
     log: logging.Logger = logging.getLogger("FFDecInterface")
+
     bin_path: Path = get_current_path() / "ffdec" / "ffdec.bat"
+    jre_archive_path: Path = get_current_path() / "jre.7z"
 
     def replace_shapes(self, swf_file: Path, shapes: dict[Path, list[int]]) -> None:
         """
@@ -116,3 +120,40 @@ class FFDecInterface:
         self.log.info("Converted to SWF.")
 
         return out_path
+
+    def setup_jre(self, temp_folder: Path) -> None:
+        """
+        Extracts Java Runtime from jre.7z to the specified folder and redirects FFDec to
+        it.
+
+        Args:
+            temp_folder (Path): Folder to extract Java Runtime to
+        """
+
+        self.log.info("Extracting Java Runtime from jre.7z...")
+
+        archive: Archive = Archive.load_archive(self.jre_archive_path)
+
+        if not archive.glob("*/bin/java.exe"):
+            raise Exception("Archive does not contain a valid java.exe!")
+
+        archive.extract_all(temp_folder)
+        java_path: Path = list(glob(temp_folder, "java.exe"))[0]
+
+        self.log.info(f"Java Runtime extracted to '{java_path}'.")
+        self.log.info("Setting up FFDec...")
+
+        # Write jre_path in ffdec.bat
+        ffdec_bat_path = self.bin_path
+        orig_bat_path = ffdec_bat_path.with_stem("ffdec_orig")
+
+        text = orig_bat_path.read_text()
+        lines = text.splitlines()
+        last_line = lines[-1]
+
+        last_line = last_line.replace("java", f'"{java_path}"', 1)
+        lines[-1] = last_line
+
+        ffdec_bat_path.write_text("\n".join(lines))
+
+        self.log.info("FFDec setup complete.")

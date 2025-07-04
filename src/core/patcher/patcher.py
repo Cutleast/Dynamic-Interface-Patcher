@@ -9,18 +9,19 @@ import tempfile
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
-import jstyleson as json
 from sse_bsa import BSAArchive
 
-from core.archive.archive import Archive
 from core.cli_interface.ffdec import FFDecInterface
 from core.cli_interface.xdelta import XDeltaInterface
 from core.config.config import Config
+from core.patch.patch import Patch
+from core.patch.patch_file import PatchFile
+from core.patch.patch_item import PatchItem
+from core.patch.patch_type import PatchType
 from core.utilities.exe_info import get_current_path
 from core.utilities.filesystem import is_dir, is_file, mkdir
-from core.utilities.glob import glob
 from core.utilities.path_splitter import split_path_with_bsa
 from core.utilities.xml_utils import beautify_xml, split_frames, unsplit_frames
 
@@ -35,16 +36,9 @@ class Patcher:
     config: Config
     app_path: Path = get_current_path()
     cwd_path: Path = Path.cwd()
-    jre_archive_path: Path = app_path / "jre.7z"
 
-    patch_data: dict[Path, Optional[dict]]
-    patch_path: Path
-    shape_path: Path
-    original_mod_path: Path
     ffdec_interface: FFDecInterface
     xdelta_interface: XDeltaInterface
-    patch_dir: Path
-    swf_files: dict[Path, Path]
     tmp_path: Optional[Path] = None
 
     def __init__(self, config: Config) -> None:
@@ -53,210 +47,257 @@ class Patcher:
         self.ffdec_interface = FFDecInterface()
         self.xdelta_interface = XDeltaInterface()
 
-    def load_patch_data(self) -> None:
-        self.patch_data = {}
+    def load_patch(self, path: Path) -> Patch:
+        """
+        Loads the patch from the specified path.
 
-        self.log.info(f"Loading patch files from {str(self.patch_path)!r}...")
+        Args:
+            path (Path): The path to the patch file.
 
-        # Scan for json files
-        for json_file in glob(self.patch_path, "*.json"):
-            self.patch_data[json_file] = json.loads(
-                json_file.read_text(encoding="utf8")
-            )
-            json_file = json_file.relative_to(self.patch_path)
-            self.log.debug(f"Loaded '{json_file}'.")
+        Returns:
+            Patch: The loaded patch.
+        """
 
-        # Scan for binary files
-        for bin_file in glob(self.patch_path, "*.bin"):
-            self.patch_data[bin_file] = None
-            bin_file = bin_file.relative_to(self.patch_path)
-            self.log.debug(f"Found binary patch '{bin_file}'.")
+        return Patch.load(path)
 
-        self.log.info(f"Loaded {len(self.patch_data)} patch files.")
+    def patch_shapes(self, patch: Patch, temp_folder: Path) -> None:
+        """
+        Patches the shapes of the specified patch to the files at the specified path.
 
-    def patch_shapes(self) -> None:
-        for patch_file, patch_data in self.patch_data.items():
-            if patch_data is None:
+        Args:
+            patch (Patch): The patch to run.
+            temp_folder (Path): The path to the temp folder with the original files.
+        """
+
+        for patch_file in patch.files:
+            if not patch_file.shapes:
                 continue
 
-            swf_file = self.swf_files[patch_file]
+            swf_file: Path = temp_folder / patch_file.original_file_path
+            shapes: dict[Path, list[int]] = {
+                patch.shapes_folder_path / shape_path: ids
+                for shape_path, ids in patch_file.shapes.items()
+            }
+            self.ffdec_interface.replace_shapes(swf_file, shapes)
 
-            shapes: dict[Path, list[int]] = {}
-            for shape_data in patch_data.get("shapes", []):
-                shape_path: Path = (self.shape_path / shape_data["fileName"]).resolve()
-
-                if not is_file(shape_path):
-                    self.log.error(
-                        f"Failed to patch shape with id '{shape_data['id']}': "
-                        f"File '{shape_path}' does not exist!"
-                    )
-                    continue
-
-                shape_ids: list[int] = [
-                    int(shape_id) for shape_id in shape_data["id"].split(",")
-                ]
-
-                if shape_path in shapes:
-                    shapes[shape_path] += shape_ids
-                else:
-                    shapes[shape_path] = shape_ids
-
-            if shapes:
-                self.ffdec_interface.replace_shapes(swf_file, shapes)
-
-    def copy_files(self) -> None:
+    def prepare_files(
+        self, patch: Patch, original_mod_path: Path, temp_folder: Path
+    ) -> None:
         """
         Copies all required files to patch to the temp folder.
+
+        Args:
+            patch (Patch): The patch to run.
+            original_mod_path (Path): The path to the original mod.
+            temp_folder (Path): The path to the temp folder.
         """
 
-        self.log.info("Copying mod files...")
+        self.log.info("Preparing mod files...")
 
-        self.swf_files = {}
-
-        file: Path
+        file: PatchFile
         bsa_file: Optional[Path]
-        mod_file: Path
-        for file, patch_data in self.patch_data.items():
-            bsa_file, mod_file = split_path_with_bsa(file)
-            mod_file = mod_file.with_suffix(".swf")
-            required: bool = patch_data is None or not patch_data.get("optional")
+        mod_file: Optional[Path]
+        for file in patch.files:
+            bsa_file, mod_file = split_path_with_bsa(file.original_file_path)
 
-            if bsa_file:
-                bsa_file = self.original_mod_path / bsa_file.name
+            if mod_file is None:
+                self.log.error(
+                    f"An error occured while splitting '{file.original_file_path}'."
+                )
+                self.log.debug(f"BSA file: {bsa_file}")
+                self.log.debug(f"Mod file: {mod_file}")
+                continue
+
+            if bsa_file is not None:
+                bsa_file = original_mod_path / bsa_file.name
             else:
-                mod_file = mod_file.relative_to(self.patch_path)
+                mod_file = mod_file.relative_to(patch.path)
 
-            origin_path = self.original_mod_path / mod_file
+            required: bool = not file.optional
+            origin_path: Path = original_mod_path / mod_file
+            dest_path: Path = temp_folder / mod_file
 
-            dest_path = self.get_tmp_dir() / mod_file
             if bsa_file is None:
                 if is_file(origin_path):
-                    if not is_dir(dest_path.parent):
-                        mkdir(dest_path.parent)
+                    mkdir(dest_path.parent)
                     shutil.copyfile(origin_path, dest_path)
 
                 elif required:
                     raise FileNotFoundError(
-                        f"{str(origin_path)!r} is required but does not exist!"
+                        f"'{origin_path}' is required but does not exist!"
                     )
 
                 # Skip missing but optional SWF files
                 else:
                     self.log.warning(
-                        f"{str(origin_path)!r} does not exist! Skipped patch file."
+                        f"'{origin_path}' does not exist! Skipped patch file."
                     )
-                    self.patch_data.pop(file)
-                    continue
+
             elif is_file(bsa_file):
                 bsa_archive = BSAArchive(bsa_file)
-                bsa_archive.extract_file(mod_file, self.get_tmp_dir())
+                bsa_archive.extract_file(mod_file, temp_folder / bsa_file.name)
 
             elif required:
-                raise FileNotFoundError(
-                    f"{str(bsa_file)!r} is required but does not exist!"
-                )
+                raise FileNotFoundError(f"'{bsa_file}' is required but does not exist!")
 
             # Skip missing but optional BSA files
             else:
-                self.log.warning(
-                    f"{str(bsa_file)!r} does not exist! Skipped patch file."
-                )
-                self.patch_data.pop(file)
-                continue
-
-            self.swf_files[file] = dest_path
+                self.log.warning(f"'{bsa_file}' does not exist! Skipped patch file.")
 
         self.log.info("Mod files ready to patch.")
 
-    def convert_swfs2xmls(self) -> None:
-        for patch_file, swf_file in self.swf_files.items():
-            if patch_file.suffix != ".bin":
-                self.ffdec_interface.swf2xml(swf_file)
-
-    def convert_xmls2swfs(self) -> None:
-        for patch_file, swf_file in self.swf_files.items():
-            if patch_file.suffix != ".bin":
-                xml_file = swf_file.with_suffix(".xml")
-                self.ffdec_interface.xml2swf(xml_file)
-
-    def patch_xmls(self) -> None:
-        for key, value in self.patch_data.items():
-            patch_file: Path = key
-
-            if value is None:
-                continue
-
-            patch_data: dict | None = value.get("swf")
-            if not patch_data:
-                continue
-
-            # Skip missing SWF files
-            if patch_file not in self.swf_files:
-                continue
-
-            swf_file = self.swf_files[patch_file]
-            xml_file = swf_file.with_suffix(".xml")
-
-            self.log.info(f"Patching '{xml_file.name}'...")
-
-            xml_data = ET.parse(str(xml_file))
-            xml_root = xml_data.getroot()
-
-            data = Patcher.process_patch_data(patch_data)
-
-            if self.config.debug_mode:
-                output_folder: Path = self.config.output_folder or self.cwd_path.parent
-                output_folder.mkdir(parents=True, exist_ok=True)
-                _debug_json = (output_folder / f"{xml_file.stem}.json").resolve()
-                with open(_debug_json, "w", encoding="utf8") as file:
-                    file.write(json.dumps(data, indent=4))
-
-            xml_root = split_frames(xml_root)
-
-            for item in data:
-                filter = item.get("filter", "")
-                changes = item.get("changes", {})
-                filter = f".{filter}"
-                elements = xml_root.findall(filter)
-                if not elements:
-                    # TODO: Fix filter appearing in new_element_tag
-                    parent_filter, new_element_tag = filter.rsplit("/", 1)
-                    self.log.debug(
-                        f"Creating new '{new_element_tag}' element at '{parent_filter}'..."
-                    )
-                    new_element = ET.Element(new_element_tag)
-                    new_element.attrib = changes
-                    parents = xml_root.findall(parent_filter)
-                    for parent in parents:
-                        parent.append(new_element)
-
-                for element in elements:
-                    for key, value in changes.items():
-                        element.attrib[key] = str(value)
-            patch_data = {}
-
-            xml_root = unsplit_frames(xml_root)
-
-            self.log.info("Writing XML file...")
-            with open(xml_file, "wb") as file:
-                xml_data.write(file, encoding="utf8")
-
-            # Optional debug XML file
-            if self.config.debug_mode:
-                output_folder: Path = self.config.output_folder or self.cwd_path.parent
-                output_folder.mkdir(parents=True, exist_ok=True)
-                _debug_xml = (output_folder / f"{xml_file.name}").resolve()
-                with open(_debug_xml, "w", encoding="utf8") as file:
-                    file.write(
-                        beautify_xml(
-                            ET.tostring(xml_data.getroot(), encoding="unicode")
-                        )
-                    )
-                self.log.debug(f"Debug written to '{_debug_xml}'.")
-
-    def repack_bsas(self, output_folder: Path):
+    def convert_swfs2xmls(self, patch: Patch, temp_folder: Path) -> None:
         """
-        Repacks BSAs with patched files at `output_folder`.
+        Converts the SWF files within the specified temp folder to XML files if they have
+        a JSON patch file in the specified patch.
+
+        Args:
+            patch (Patch): Patch to run.
+            temp_folder (Path): Temp folder with SWF files.
+        """
+
+        for patch_file in patch.files:
+            swf_file: Path = temp_folder / patch_file.original_file_path
+
+            if patch_file.type == PatchType.Json and patch_file.data:
+                if is_file(swf_file):
+                    self.ffdec_interface.swf2xml(swf_file)
+                else:
+                    self.log.error(
+                        f"Failed to convert '{swf_file}' to XML file: File does not "
+                        "exist."
+                    )
+
+    def convert_xmls2swfs(self, patch: Patch, temp_folder: Path) -> None:
+        """
+        Converts the XML files within the specified temp folder back to SWF files if they
+        have a JSON patch file in the specified patch.
+
+        Args:
+            patch (Patch): Patch to run.
+            temp_folder (Path): Temp folder with XML files.
+        """
+
+        for patch_file in patch.files:
+            xml_file: Path = temp_folder / patch_file.original_file_path.with_suffix(
+                ".xml"
+            )
+
+            if patch_file.type == PatchType.Json and patch_file.data:
+                if is_file(xml_file):
+                    self.ffdec_interface.xml2swf(xml_file)
+                else:
+                    self.log.error(
+                        f"Failed to convert '{xml_file}' back to SWF file: File does "
+                        "not exist."
+                    )
+
+    def patch_xmls(self, patch: Patch, temp_folder: Path) -> None:
+        """
+        Patches the XML files in the temp folder according to the patch's JSON files.
+
+        Args:
+            patch (Patch): Patch to run.
+            temp_folder (Path): Temp folder with XML files.
+        """
+
+        for patch_file in patch.files:
+            xml_file: Path = temp_folder / patch_file.original_file_path.with_suffix(
+                ".xml"
+            )
+
+            if patch_file.type == PatchType.Json and patch_file.data:
+                if is_file(xml_file):
+                    self.patch_xml_file(xml_file, patch_file.data)
+                else:
+                    self.log.error(
+                        f"Failed to patch '{xml_file}': File does not exist."
+                    )
+
+    def patch_xml_file(self, xml_file: Path, patch_data: list[PatchItem]) -> None:
+        """
+        Patches the specified XML file with the specified patch data.
+
+        Args:
+            xml_file (Path): XML file to patch.
+            patch_data (list[PatchItem]): Patch data to apply.
+        """
+
+        self.log.info(
+            f"Patching '{xml_file.name}' with {len(patch_data)} patch item(s)..."
+        )
+
+        xml_data: ET.ElementTree[ET.Element[str]] = ET.parse(str(xml_file))
+        xml_root: ET.Element[str] = xml_data.getroot()
+
+        if self.config.debug_mode:
+            output_folder: Path = self.config.output_folder or self.cwd_path.parent
+            mkdir(output_folder)
+            _debug_json = (output_folder / f"{xml_file.stem}.json").resolve()
+            # TODO: Reimplement
+            # with open(_debug_json, "w", encoding="utf8") as file:
+            #     file.write(json.dumps(data, indent=4))
+
+        # split frames as they aren't indexed or whatsoever in the XML
+        xml_root = split_frames(xml_root)
+
+        for item in patch_data:
+            filter: str = item.filter
+            changes: dict[str, str] = item.changes
+            filter = f".{filter}"
+            elements = xml_root.findall(filter)
+            if not elements:
+                # TODO: Fix filter appearing in new_element_tag
+                parent_filter, new_element_tag = filter.rsplit("/", 1)
+                self.log.debug(
+                    f"Creating new '{new_element_tag}' element at '{parent_filter}'..."
+                )
+                new_element = ET.Element(new_element_tag)
+                new_element.attrib = changes
+                parents = xml_root.findall(parent_filter)
+                for parent in parents:
+                    parent.append(new_element)
+
+            for element in elements:
+                for key, value in changes.items():
+                    element.attrib[key] = str(value)
+
+        # unsplit frames again
+        xml_root = unsplit_frames(xml_root)
+
+        self.log.info("Writing XML file...")
+        with open(xml_file, "wb") as file:
+            xml_data.write(file, encoding="utf8")
+
+        # Optional debug XML file
+        if self.config.debug_mode:
+            output_folder: Path = self.config.output_folder or self.cwd_path.parent
+            mkdir(output_folder)
+            _debug_xml = (output_folder / f"{xml_file.name}").resolve()
+            with open(_debug_xml, "w", encoding="utf8") as file:
+                file.write(
+                    beautify_xml(ET.tostring(xml_data.getroot(), encoding="unicode"))
+                )
+            self.log.debug(f"Debug written to '{_debug_xml}'.")
+
+    def finalize_files(
+        self,
+        patch: Patch,
+        temp_folder: Path,
+        original_mod_path: Path,
+        output_folder: Path,
+        repack_bsas: bool,
+    ) -> None:
+        """
+        Copies patched files to the output folder and repacks BSAs with patched files if
+        enabled.
+
+        Args:
+            patch (Patch): Patch to run.
+            temp_folder (Path): Temp folder with patched files.
+            original_mod_path (Path): Path to original mod (for original BSAs).
+            output_folder (Path): Output folder for repacked BSAs.
+            repack_bsas (bool): Whether to repack BSAs.
         """
 
         bsa_archives: dict[Path, list[Path]] = {}
@@ -264,30 +305,35 @@ class Patcher:
         Stores path to BSAs with list of patched files.
         """
 
-        if not is_dir(output_folder):
-            mkdir(output_folder)
+        mkdir(output_folder)
 
-        for file in self.patch_data.keys():
-            bsa_file, mod_file = split_path_with_bsa(file)
-            patched_file = mod_file.with_suffix(".swf")
+        bsa_file: Optional[Path]
+        mod_file: Optional[Path]
+        for file in patch.files:
+            bsa_file, mod_file = split_path_with_bsa(file.original_file_path)
 
-            # Skip missing SWF files
-            if not is_file(self.get_tmp_dir() / patched_file):
-                self.log.warning(
-                    f"Skipped missing patched file {str(self.get_tmp_dir() / patched_file)!r}."
+            if mod_file is None:
+                self.log.error(
+                    f"An error occured while splitting '{file.original_file_path}'."
                 )
+                self.log.debug(f"BSA file: {bsa_file}")
+                self.log.debug(f"Mod file: {mod_file}")
                 continue
 
-            if bsa_file:
-                bsa_file = self.original_mod_path / bsa_file.name
+            patched_file: Path = temp_folder / file.original_file_path
 
-                if bsa_file in bsa_archives:
-                    bsa_archives[bsa_file].append(patched_file)
-                else:
-                    bsa_archives[bsa_file] = [patched_file]
+            # Skip missing SWF files
+            if not is_file(patched_file):
+                self.log.warning(f"Skipped missing patched file '{patched_file}'.")
+                continue
+
+            if bsa_file is not None and repack_bsas:
+                bsa_file = original_mod_path / bsa_file
+                bsa_archives.setdefault(bsa_file, []).append(mod_file)
+
             else:
-                src = self.get_tmp_dir() / file
-                dst = output_folder / file
+                src: Path = patched_file
+                dst: Path = output_folder / mod_file
 
                 # Backup original file
                 if is_file(dst):
@@ -298,6 +344,7 @@ class Patcher:
                         ),
                     )
 
+                mkdir(dst.parent)
                 shutil.copyfile(src, dst)
 
         for bsa_file, files in bsa_archives.items():
@@ -305,13 +352,14 @@ class Patcher:
 
             # 1. Extract BSA to a new temp folder
             bsa_archive = BSAArchive(bsa_file)
-            os.mkdir(self.get_tmp_dir() / bsa_file.name)
-            bsa_archive.extract(self.get_tmp_dir() / bsa_file.name)
+            bsa_content_path: Path = temp_folder / ("out_" + bsa_file.name)
+            mkdir(bsa_content_path)
+            bsa_archive.extract(bsa_content_path)
 
             # 2. Copy patched files over original files
             for file in files:
-                src = self.get_tmp_dir() / file
-                dst = self.get_tmp_dir() / bsa_file.name / file
+                src: Path = temp_folder / bsa_file.name / file
+                dst: Path = bsa_content_path / file
 
                 # Remove original file from BSA
                 if is_file(dst):
@@ -320,7 +368,7 @@ class Patcher:
                 shutil.copyfile(src, dst)
 
             # 3. Repack BSA at output folder
-            dst = output_folder / bsa_file.name
+            dst: Path = output_folder / bsa_file.name
 
             # Backup original BSA
             if is_file(dst):
@@ -329,89 +377,53 @@ class Patcher:
                     dst.with_suffix(dst.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")),
                 )
 
-            BSAArchive.create_archive(
-                self.get_tmp_dir() / bsa_file.name, output_folder / bsa_file.name
-            )
+            BSAArchive.create_archive(bsa_content_path, output_folder / bsa_file.name)
 
-    def finish_patching(self) -> None:
-        output_path: Path
+    def finish_patching(
+        self, patch: Patch, temp_folder: Path, original_mod_path: Path
+    ) -> None:
+        output_folder: Path
         if self.config.output_folder is not None:
-            output_path = self.config.output_folder
+            output_folder = self.config.output_folder
         else:
-            output_path = self.cwd_path.parent
+            output_folder = self.cwd_path.parent
 
-        if self.config.repack_bsas:
-            self.repack_bsas(output_path)
-        else:
-            for file in self.swf_files.values():
-                dest = output_path / file.relative_to(self.get_tmp_dir())
+        self.finalize_files(
+            patch,
+            temp_folder,
+            original_mod_path,
+            output_folder,
+            self.config.repack_bsas,
+        )
 
-                if not is_dir(dest.parent):
-                    mkdir(dest.parent)
-
-                # Backup already existing file
-                if is_file(dest):
-                    shutil.move(
-                        dest,
-                        dest.with_suffix(
-                            dest.suffix + time.strftime(".%d-%m-%Y-%H-%M-%S")
-                        ),
-                    )
-
-                shutil.copyfile(file, dest)
-                self.log.debug(f"Copied {str(file)!r} to {str(dest)!r}.")
-
-        self.log.info(f"Output written to '{output_path}'.")
-
-    def setup_jre(self) -> None:
-        """
-        Extracts Java Runtime from jre.7z and redirects FFDec to it.
-        """
-
-        self.log.info("Extracting Java Runtime from jre.7z...")
-
-        tmp_folder = self.get_tmp_dir()
-
-        archive: Archive = Archive.load_archive(self.jre_archive_path)
-
-        if not archive.glob("*/bin/java.exe"):
-            raise Exception("Archive does not contain a valid java.exe!")
-
-        archive.extract_all(tmp_folder)
-        java_path: Path = list(glob(tmp_folder, "java.exe"))[0]
-
-        self.log.info(f"Java Runtime extracted to '{java_path}'.")
-        self.log.info("Setting up FFDec...")
-
-        # Write jre_path in ffdec.bat
-        ffdec_bat_path = self.ffdec_interface.bin_path
-        orig_bat_path = ffdec_bat_path.with_stem("ffdec_orig")
-
-        text = orig_bat_path.read_text()
-        lines = text.splitlines()
-        last_line = lines[-1]
-
-        last_line = last_line.replace("java", f'"{java_path}"', 1)
-        lines[-1] = last_line
-
-        ffdec_bat_path.write_text("\n".join(lines))
-
-        self.log.info("FFDec setup complete.")
+        self.log.info(f"Output written to '{output_folder}'.")
 
     def get_tmp_dir(self) -> Path:
+        """
+        Returns the temporary directory used by the patcher. Creates one if it doesn't
+        exist.
+
+        Returns:
+            Path: The temporary directory
+        """
+
         if self.tmp_path is None:
             self.tmp_path = Path(tempfile.mkdtemp(prefix="DIP_"))
             self.log.debug(f"Created temporary directory at {str(self.tmp_path)!r}.")
 
         return self.tmp_path
 
-    def apply_binary_patches(self) -> None:
+    def apply_binary_patches(self, patch: Patch, temp_folder: Path) -> None:
         """
-        Applies binary patches to original files.
+        Applies binary patches to the original files in the specified temp folder.
+
+        Args:
+            patch (Patch): The patch to run.
+            temp_folder (Path): The temp folder containing copies of the original files.
         """
 
-        binary_patches: list[Path] = [
-            file for file in self.patch_data.keys() if file.suffix == ".bin"
+        binary_patches: list[PatchFile] = [
+            file for file in patch.files if file.type == PatchType.Binary
         ]
 
         if not binary_patches:
@@ -420,32 +432,11 @@ class Patcher:
         self.log.info(f"Applying {len(binary_patches)} binary patch(es)...")
 
         for patch_file in binary_patches:
-            swf_file: Path = self.swf_files[patch_file]
-
-            self.xdelta_interface.patch_file(swf_file, patch_file)
+            swf_file: Path = temp_folder / patch_file.original_file_path
+            bin_file: Path = patch.patch_folder_path / patch_file.path
+            self.xdelta_interface.patch_file(swf_file, bin_file)
 
         self.log.info("Binary patches applied.")
-
-    def check_patch(self, folder: Path) -> bool:
-        """
-        Checks if a folder contains a valid patch.
-
-        Args:
-            folder (Path): Path to the folder to check.
-
-        Returns:
-            bool: True if the folder contains a valid patch, False otherwise.
-        """
-
-        patch_path: Path = folder / "Patch"
-
-        if not is_dir(patch_path):
-            return False
-
-        if not list(glob(patch_path, "*.json")) and not list(glob(patch_path, "*.bin")):
-            return False
-
-        return True
 
     def patch(self, patch_path: Path, original_mod_path: Path) -> float:
         """
@@ -469,43 +460,38 @@ class Patcher:
             float: duration in seconds
         """
 
-        self.patch_path = patch_path / "Patch"
-        self.shape_path = patch_path / "Shapes"
-        self.original_mod_path = original_mod_path
-
         self.log.info("Patching mod...")
 
         start_time: float = time.time()
+        temp_folder: Path = self.get_tmp_dir()
 
         # 0. Load patch data
-        self.load_patch_data()
+        patch: Patch = Patch.load(patch_path)
 
         # 1. Setup JRE if required
-        if any(
-            file for file in self.patch_data.keys() if file.suffix.lower() == ".json"
-        ):
-            self.setup_jre()
+        if any(file for file in patch.files if file.type == PatchType.Json):
+            self.ffdec_interface.setup_jre(temp_folder)
 
         # 2. Copy original mod files to patch and extract BSAs if required
-        self.copy_files()
+        self.prepare_files(patch, original_mod_path, temp_folder)
 
         # 3. Patch shapes
-        self.patch_shapes()
+        self.patch_shapes(patch, temp_folder)
 
         # 4. Convert SWFs to XMLs
-        self.convert_swfs2xmls()
+        self.convert_swfs2xmls(patch, temp_folder)
 
         # 5. Patch XMLs
-        self.patch_xmls()
+        self.patch_xmls(patch, temp_folder)
 
         # 6. Convert XMLs back to SWFs
-        self.convert_xmls2swfs()
+        self.convert_xmls2swfs(patch, temp_folder)
 
         # 7. Apply binary patches with xdelta
-        self.apply_binary_patches()
+        self.apply_binary_patches(patch, temp_folder)
 
         # 8. Copy patched files back to current directory and repack BSAs if enabled
-        self.finish_patching()
+        self.finish_patching(patch, temp_folder, original_mod_path)
 
         duration: float = time.time() - start_time
         self.log.info(f"Patching complete in {duration:.3f} second(s).")
@@ -517,86 +503,3 @@ class Patcher:
             shutil.rmtree(self.tmp_path, ignore_errors=True)
             self.tmp_path = None
             self.log.info("Removed temporary folder.")
-
-    def get_patches(self) -> list[str]:
-        """
-        Returns a list of possible paths to patches.
-
-        Returns:
-            list[str]: List of possible paths to patches.
-        """
-
-        self.log.debug("Scanning for patches...")
-
-        paths_to_scan: list[Path] = [
-            self.cwd_path,
-            self.cwd_path.parent,
-        ]
-        patches: list[str] = []
-
-        for path in paths_to_scan:
-            self.log.debug(f"Searching in '{path}'...")
-
-            for item in path.iterdir():
-                self.log.debug(f"Checking item {str(item)!r}...")
-                if not is_dir(item):
-                    continue
-
-                if item.match("*DIP*") and is_dir(item / "Patch"):
-                    patches.append(str(item))
-
-        self.log.debug(f"Found {len(patches)} patches.")
-
-        return patches
-
-    @staticmethod
-    def process_patch_data(patch_data: dict) -> list[dict[str, str | dict]]:
-        """
-        Processes patch data.
-
-        Args:
-            patch_data (dict): Patch data to process.
-
-        Returns:
-            list[dict[str, str | dict]]: Processed patch data.
-        """
-
-        result: list[dict[str, str | dict]] = []
-
-        def process_data(
-            data: dict[str, Any] | list, cur_filter: str = ""
-        ) -> dict[str, str | dict]:
-            cur_result: dict[str, str | dict] = {}
-            cur_changes: dict[str, str] = {}
-
-            if isinstance(data, list):
-                for item in data:
-                    if child_result := process_data(item, cur_filter + "/item"):
-                        result.append(child_result)
-
-            else:
-                for key, value in data.items():
-                    if isinstance(value, str):
-                        if key.startswith("#"):
-                            attribute: str = key.removeprefix("#")
-                            # Fix frames
-                            if attribute == "frameId":
-                                cur_filter, _ = cur_filter.rsplit("/", 1)
-                                cur_filter += "/frame"
-                            cur_filter += f"[@{attribute}='{value}']"
-                        else:
-                            attribute: str = key.removeprefix("~")
-                            cur_changes[attribute] = value
-
-                        if cur_filter and cur_changes:
-                            cur_result = {"filter": cur_filter, "changes": cur_changes}
-                    else:
-                        if child_result := process_data(value, cur_filter + f"/{key}"):
-                            result.append(child_result)
-
-            return cur_result
-
-        if cur_result := process_data(patch_data):
-            result.append(cur_result)
-
-        return result

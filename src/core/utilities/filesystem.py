@@ -78,6 +78,11 @@ def mkdir(path: Path) -> None:
     Creates a directory. Doesn't use `Path.mkdir()` since
     its known to be broken with Win 11 24H2.
 
+    Does nothing if the specified path is already an existing folder.
+
+    Raises:
+        FileExistsError: If the specified path is already a file
+
     Args:
         path (Path): Path to create
     """

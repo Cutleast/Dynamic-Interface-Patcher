@@ -26,9 +26,18 @@ dev = [
     "pyinstaller",
     "pyinstaller-versionfile",
     "pyright",
+    "pytest",
+    "pytest-qt",
     "ruff",
     "semantic-version",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "[%(asctime)s.%(msecs)03d][%(levelname)s][%(name)s.%(funcName)s]: %(message)s"
 
 [tool.pyright]
 include = ["src", "tests"]

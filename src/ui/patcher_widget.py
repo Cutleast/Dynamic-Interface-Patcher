@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.config.config import Config
+from core.patch.patch_provider import PatchProvider
 from core.patcher.patcher import Patcher
 from core.utilities.filesystem import is_dir
 from core.utilities.status_update import StatusUpdate
@@ -148,7 +149,7 @@ class PatcherWidget(BaseTab):
         self.config.repack_bsas = self.__repack_checkbox.isChecked()
 
     def __init_entries(self) -> None:
-        self.__patch_path_entry.addItems(self.patcher.get_patches())
+        self.__patch_path_entry.addItems(PatchProvider.get_patches())
 
         # If the current working directory is the data folder,
         # set the mod path to the parent folder
@@ -168,7 +169,7 @@ class PatcherWidget(BaseTab):
         patch_path = Path(self.__patch_path_entry.currentText()).resolve()
         mod_path = Path(self.__mod_path_entry.currentText()).resolve()
 
-        if not self.patcher.check_patch(patch_path):
+        if not PatchProvider.check_patch(patch_path):
             self.valid_signal.emit(False)
             return
 
