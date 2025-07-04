@@ -79,7 +79,7 @@ class Config(BaseConfig):
         if debug_mode is not None:
             self.debug_mode = debug_mode
 
-        repack_bsas: Optional[bool] = getattr(namespace, "repack_bsas", None)
+        repack_bsas: Optional[bool] = getattr(namespace, "repack_bsa", None)
         if repack_bsas is not None:
             self.repack_bsas = repack_bsas
 
@@ -93,14 +93,14 @@ class Config(BaseConfig):
 
         # apply auto patch config
         patch_path: Optional[str] = getattr(namespace, "patchpath", None)
-        if patch_path is not None:
+        if patch_path is not None and patch_path.strip():
             self.patch_path = Path(patch_path)
 
         original_path: Optional[str] = getattr(namespace, "originalpath", None)
-        if original_path is not None:
+        if original_path is not None and original_path.strip():
             self.original_path = Path(original_path)
 
-        if patch_path is not None or original_path is not None:
+        if self.patch_path and self.original_path:
             self.auto_patch = True
 
     @override
