@@ -15,7 +15,7 @@ from ._base_config import BaseConfig
 
 class Config(BaseConfig):
     """
-    Class for managing settings.
+    Class for managing general app configuration.
     """
 
     debug_mode: bool = False

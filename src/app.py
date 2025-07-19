@@ -14,6 +14,8 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from core.config.config import Config
+from core.config.patch_creator_config import PatchCreatorConfig
+from core.patch_creator.patch_creator import PatchCreator
 from core.patcher.patcher import Patcher
 from core.utilities.exception_handler import ExceptionHandler
 from core.utilities.exe_info import get_current_path
@@ -32,6 +34,7 @@ class App(QApplication):
 
     args: Namespace
     config: Config
+    patch_creator_config: PatchCreatorConfig
 
     app_path: Path = get_current_path()
     cwd_path: Path = Path.cwd()
@@ -43,13 +46,15 @@ class App(QApplication):
 
     main_window: MainWindow
     patcher: Patcher
+    patch_creator: PatchCreator
 
-    def __init__(self, args: Namespace):
+    def __init__(self, args: Namespace) -> None:
         super().__init__()
 
         self.args = args
-        self.config = Config.load(self.cwd_path / "config")
+        self.config = Config.load(self.app_path / "config")
         self.config.apply_from_namespace(args)
+        self.patch_creator_config = PatchCreatorConfig.load(self.app_path / "config")
 
         self.logger = Logger(
             self.log_path,
@@ -70,7 +75,14 @@ class App(QApplication):
 
         self.exception_handler = ExceptionHandler(self)
         self.patcher = Patcher(self.config)
-        self.main_window = MainWindow(self.logger, self.config, self.patcher)
+        self.patch_creator = PatchCreator(self.config, self.patch_creator_config)
+        self.main_window = MainWindow(
+            self.logger,
+            self.config,
+            self.patch_creator_config,
+            self.patcher,
+            self.patch_creator,
+        )
 
     def log_basic_info(self) -> None:
         """
@@ -110,3 +122,4 @@ class App(QApplication):
         """
 
         self.patcher.clean()
+        self.patch_creator.clean()

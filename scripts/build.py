@@ -48,6 +48,7 @@ ADDITIONAL_ITEMS: dict[Path, Path] = {
     Path("res") / "jre.7z": DIST_OUTPUT_PATH / "jre.7z",
     Path("res") / "xdelta": DIST_OUTPUT_PATH / "xdelta",
     Path("res") / "glob.dll": DIST_OUTPUT_PATH / "glob.dll",
+    Path("res") / "config": DIST_OUTPUT_PATH / "config",
 }
 
 logging.basicConfig(level=logging.DEBUG)

@@ -5,10 +5,10 @@ Copyright (c) Cutleast
 import logging
 import os
 from pathlib import Path
-from typing import Optional, override
+from typing import override
 
 import qtawesome as qta
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -43,11 +43,6 @@ class PatcherWidget(BaseTab):
     patcher: Patcher
     cwd_path: Path = Path.cwd()
 
-    __thread: Optional[Thread] = None
-
-    status_signal = Signal(StatusUpdate)
-    valid_signal = Signal(bool)
-
     __patch_path_entry: QComboBox
     __mod_path_entry: QComboBox
     __repack_checkbox: QCheckBox
@@ -63,8 +58,6 @@ class PatcherWidget(BaseTab):
         self.status_signal.emit(StatusUpdate.Ready)
 
     def __init_ui(self) -> None:
-        self.setObjectName("transparent")
-
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
 
@@ -186,22 +179,22 @@ class PatcherWidget(BaseTab):
 
         self.status_signal.emit(StatusUpdate.Running)
 
-        self.__thread = Thread(
+        self._thread = Thread(
             lambda: self.patcher.patch(patch_path, mod_path),
             "PatcherThread",
             self,
         )
-        self.__thread.finished.connect(self.on_done)
-        self.__thread.start()
+        self._thread.finished.connect(self.on_done)
+        self._thread.start()
 
     def on_done(self) -> None:
         # Check if thread was terminated externally
-        if self.__thread is None:
+        if self._thread is None:
             self.status_signal.emit(StatusUpdate.Failed)
             return
 
-        duration: float | Exception = self.__thread.get_result()
-        self.__thread = None
+        duration: float | Exception = self._thread.get_result()
+        self._thread = None
 
         if isinstance(duration, Exception):
             self.log.error(f"Failed to patch: {duration}", exc_info=duration)
@@ -253,9 +246,9 @@ class PatcherWidget(BaseTab):
 
     @override
     def cancel(self) -> None:
-        if self.__thread is not None:
-            self.__thread.terminate()
-            self.__thread = None
+        if self._thread is not None:
+            self._thread.terminate()
+            self._thread = None
 
         self.__mod_path_entry.setEnabled(True)
         self.__patch_path_entry.setEnabled(True)

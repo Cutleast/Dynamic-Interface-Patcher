@@ -1,0 +1,65 @@
+{
+    // Files that are ignored
+    // For example, files that are known
+    // to raise errors
+    "file_blacklist": [],
+
+    // Shape export format
+    // Possible formats: svg, png, jpeg
+    "export_format": "svg",
+
+    // XML tags of elements that are created
+    // if element is missing in original XML
+    "creation_whitelist": [
+        "colorTransform",
+        "matrix"
+    ],
+
+    // Tags of elements that contain multiple children of same type
+    "list_tags": [
+        "tags",
+        "subTags"
+    ],
+
+    // Attributes that are used as filters
+    "filter_whitelist": [
+        "type",
+        "spriteId",
+        "characterId",
+        "characterID",
+        "textID",
+        "depth",
+        "name",
+        "frameId",
+        "shapeId"
+    ],
+
+    // Item types that are ignored
+    "type_blacklist": [
+        "DoInitActionTag",
+        "ExportAssetsTag",
+        "ImportAssets2Tag",
+        "DefineBitsLossless2Tag"
+    ],
+
+    // XML tags that are ignored
+    "tag_blacklist": [
+        "shapes",
+        "fillStyles",
+        "color",
+        "lineStyles",
+        "lineStyles2",
+        "names"
+    ],
+
+    // Attributes that are completely ignored
+    "attr_blacklist": [],
+
+    // Shape types that are compared and exported
+    "shape_types": [
+        "DefineShapeTag",
+        "DefineShape2Tag",
+        "DefineShape3Tag",
+        "DefineShape4Tag"
+    ]
+}

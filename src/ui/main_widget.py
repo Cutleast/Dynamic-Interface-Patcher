@@ -21,11 +21,14 @@ from PySide6.QtWidgets import (
 )
 
 from core.config.config import Config
+from core.config.patch_creator_config import PatchCreatorConfig
+from core.patch_creator.patch_creator import PatchCreator
 from core.patcher.patcher import Patcher
 from core.utilities.logger import Logger
 from core.utilities.status_update import StatusUpdate
 
 from .base_tab import BaseTab
+from .patch_creator_widget import PatchCreatorWidget
 from .patcher_widget import PatcherWidget
 
 
@@ -38,28 +41,41 @@ class MainWidget(QWidget):
 
     logger: Logger
     config: Config
+    patch_creator_config: PatchCreatorConfig
     patcher: Patcher
+    patch_creator: PatchCreator
 
     __vlayout: QVBoxLayout
 
     __tab_widget: QTabWidget
     __patcher_widget: PatcherWidget
+    __patch_creator_widget: PatchCreatorWidget
     __protocol_widget: QTextEdit
     __progress_bar: QProgressBar
     __run_button: QPushButton
 
     incr_progress_signal = Signal()
 
-    def __init__(self, logger: Logger, config: Config, patcher: Patcher) -> None:
+    def __init__(
+        self,
+        logger: Logger,
+        config: Config,
+        patch_creator_config: PatchCreatorConfig,
+        patcher: Patcher,
+        patch_creator: PatchCreator,
+    ) -> None:
         super().__init__()
 
         self.logger = logger
         self.config = config
+        self.patch_creator_config = patch_creator_config
         self.patcher = patcher
+        self.patch_creator = patch_creator
 
         self.__init_ui()
 
         self.__patcher_widget.status_signal.connect(self.__handle_status_update)
+        self.__patch_creator_widget.status_signal.connect(self.__handle_status_update)
         self.logger.log_signal.connect(self.__handle_log_message)
         self.incr_progress_signal.connect(
             lambda: self.__progress_bar.setValue(self.__progress_bar.value() + 1)
@@ -91,9 +107,10 @@ class MainWidget(QWidget):
         self.__patcher_widget = PatcherWidget(self.config, self.patcher)
         self.__tab_widget.addTab(self.__patcher_widget, "Patcher")
 
-        self.__tab_widget.addTab(QWidget(), "Patch Creator")
-        self.__tab_widget.setTabToolTip(1, "Work in Progress...")
-        self.__tab_widget.setTabEnabled(1, False)
+        self.__patch_creator_widget = PatchCreatorWidget(
+            self.config, self.patch_creator_config, self.patch_creator
+        )
+        self.__tab_widget.addTab(self.__patch_creator_widget, "Patch Creator")
 
     def __init_protocol_widget(self) -> None:
         self.__protocol_widget = QTextEdit()

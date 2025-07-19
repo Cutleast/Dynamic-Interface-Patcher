@@ -20,10 +20,14 @@ from core.patch.patch import Patch
 from core.patch.patch_file import PatchFile
 from core.patch.patch_item import PatchItem
 from core.patch.patch_type import PatchType
-from core.utilities.exe_info import get_current_path
 from core.utilities.filesystem import is_dir, is_file, mkdir
 from core.utilities.path_splitter import split_path_with_bsa
-from core.utilities.xml_utils import beautify_xml, split_frames, unsplit_frames
+from core.utilities.xml_utils import (
+    beautify_xml,
+    parse_xpath_part,
+    split_frames,
+    unsplit_frames,
+)
 
 
 class Patcher:
@@ -34,7 +38,6 @@ class Patcher:
     log: logging.Logger = logging.getLogger("Patcher")
 
     config: Config
-    app_path: Path = get_current_path()
     cwd_path: Path = Path.cwd()
 
     ffdec_interface: FFDecInterface
@@ -60,13 +63,17 @@ class Patcher:
 
         return Patch.load(path)
 
-    def patch_shapes(self, patch: Patch, temp_folder: Path) -> None:
+    @staticmethod
+    def patch_shapes(
+        patch: Patch, temp_folder: Path, ffdec_interface: FFDecInterface
+    ) -> None:
         """
         Patches the shapes of the specified patch to the files at the specified path.
 
         Args:
             patch (Patch): The patch to run.
             temp_folder (Path): The path to the temp folder with the original files.
+            ffdec_interface (FFDecInterface): The FFDecInterface to use.
         """
 
         for patch_file in patch.files:
@@ -78,7 +85,7 @@ class Patcher:
                 patch.shapes_folder_path / shape_path: ids
                 for shape_path, ids in patch_file.shapes.items()
             }
-            self.ffdec_interface.replace_shapes(swf_file, shapes)
+            ffdec_interface.replace_shapes(swf_file, shapes)
 
     def prepare_files(
         self, patch: Patch, original_mod_path: Path, temp_folder: Path
@@ -121,6 +128,7 @@ class Patcher:
                 if is_file(origin_path):
                     mkdir(dest_path.parent)
                     shutil.copyfile(origin_path, dest_path)
+                    self.log.debug(f"Copied '{origin_path}' -> '{dest_path}'.")
 
                 elif required:
                     raise FileNotFoundError(
@@ -136,6 +144,10 @@ class Patcher:
             elif is_file(bsa_file):
                 bsa_archive = BSAArchive(bsa_file)
                 bsa_archive.extract_file(mod_file, temp_folder / bsa_file.name)
+                self.log.debug(
+                    f"Extracted '{bsa_file / mod_file}' -> "
+                    f"'{temp_folder / bsa_file.name / mod_file}'."
+                )
 
             elif required:
                 raise FileNotFoundError(f"'{bsa_file}' is required but does not exist!")
@@ -247,8 +259,8 @@ class Patcher:
             filter = f".{filter}"
             elements = xml_root.findall(filter)
             if not elements:
-                # TODO: Fix filter appearing in new_element_tag
-                parent_filter, new_element_tag = filter.rsplit("/", 1)
+                parent_filter, last_part = filter.rsplit("/", 1)
+                new_element_tag, _ = parse_xpath_part(last_part)
                 self.log.debug(
                     f"Creating new '{new_element_tag}' element at '{parent_filter}'..."
                 )
@@ -476,7 +488,7 @@ class Patcher:
         self.prepare_files(patch, original_mod_path, temp_folder)
 
         # 3. Patch shapes
-        self.patch_shapes(patch, temp_folder)
+        Patcher.patch_shapes(patch, temp_folder, self.ffdec_interface)
 
         # 4. Convert SWFs to XMLs
         self.convert_swfs2xmls(patch, temp_folder)

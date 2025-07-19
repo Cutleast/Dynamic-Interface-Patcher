@@ -2,8 +2,21 @@
 Copyright (c) Cutleast
 """
 
+import re
 import xml.etree.ElementTree as ET
+from typing import Optional
 from xml.dom.minidom import Document, parseString
+
+XPATH_TAG_PATTERN: re.Pattern[str] = re.compile(r"([^\/\[\]]+)")
+"""Regex pattern for extracting the tag from a single part of an XPath expression."""
+
+XPATH_ATTR_PATTERN: re.Pattern[str] = re.compile(
+    r"\[@([^=\[\]]+)='([^']+)']", re.DOTALL
+)
+"""
+Regex pattern for extracting attribute-value pairs from a single part of an XPath
+expression.
+"""
 
 
 def split_frames(xml_element: ET.Element) -> ET.Element:
@@ -109,3 +122,29 @@ def beautify_xml(xml_string: str) -> str:
         print(ex)
 
         return xml_string
+
+
+def parse_xpath_part(xpath_part: str) -> tuple[str, dict[str, str]]:
+    """
+    Parses a single part of an XPath expression and returns its tag and attribute-value
+    pairs.
+
+    Args:
+        xpath_part (str): XPath part to parse.
+
+    Raises:
+        ValueError: When the XPath part has no tag.
+
+    Returns:
+        tuple[str, dict[str, str]]: Tag and attribute-value pairs of the XPath part.
+    """
+
+    tag_match: Optional[re.Match[str]] = XPATH_TAG_PATTERN.search(xpath_part)
+
+    if tag_match is None:
+        raise ValueError(f"XPath part has no tag: {xpath_part}")
+
+    tag: str = tag_match.group()
+    attr_matches: list[tuple[str, str]] = XPATH_ATTR_PATTERN.findall(xpath_part)
+
+    return tag, {match[0]: match[1] for match in attr_matches}

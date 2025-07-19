@@ -121,6 +121,36 @@ class FFDecInterface:
 
         return out_path
 
+    def export_shapes(
+        self, swf_file: Path, shape_ids: list[int], outpath: Path, format: str
+    ) -> None:
+        """
+        Exports the specified shapes from the specified SWF file to the specified output
+        folder with the specified format.
+
+        Args:
+            swf_file (Path): Path to SWF file.
+            shape_ids (list[int]): List of shape ids to export.
+            outpath (Path): Path to folder the shapes get exported to.
+        """
+
+        self.log.info(f"Exporting {len(shape_ids)} shape(s) from '{swf_file}'...")
+
+        cmd: list[str] = [
+            str(self.bin_path),
+            "-format",
+            "shape:" + format,
+            "-selectid",
+            ",".join(list(map(str, shape_ids))),
+            "-export",
+            "shape",
+            str(outpath),
+            str(swf_file),
+        ]
+        run_process(cmd)
+
+        self.log.info(f"Shape(s) exported to '{outpath}'.")
+
     def setup_jre(self, temp_folder: Path) -> None:
         """
         Extracts Java Runtime from jre.7z to the specified folder and redirects FFDec to
