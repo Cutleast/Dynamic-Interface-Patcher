@@ -78,7 +78,8 @@
 		"python.analysis.typeCheckingMode": "strict",
 		"python.analysis.stubPath": "stubs",
 		"git.diagnosticsCommitHook.Enabled": true,
-		"python.testing.autoTestDiscoverOnSaveEnabled": true
+		"python.testing.autoTestDiscoverOnSaveEnabled": true,
+		"autoDocstring.startOnNewLine": true
 	},
 	"launch": {
 		"version": "0.2.0",
@@ -96,6 +97,13 @@
 					"${workspaceFolder:Dynamic-Interface-Patcher}/experiments/patch_output"
 				],
 				"preLaunchTask": "compile-qrc"
+			},
+			{
+				"name": "Debug current file",
+				"type": "debugpy",
+				"request": "launch",
+				"program": "${file}",
+				"console": "internalConsole",
 			}
 		],
 		"compounds": []
