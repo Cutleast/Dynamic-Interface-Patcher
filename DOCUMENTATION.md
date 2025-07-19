@@ -1,39 +1,85 @@
-# [NEW] Auto Patch Creator
-### Dynamic Interface Construction Kit (DICK)
+# Creating Patches
 
-<p align="center">
-<img src="https://i.imgur.com/76J8IOv.png" width="500px" />
-<br>
-<a href="https://www.nexusmods.com/skyrimspecialedition/mods/97864"><img src="https://i.imgur.com/STsBXT6.png" height="60px"/> </a>
-<a href="https://github.com/Cutleast/Dynamic-Interface-Construction-Kit"><img src="https://imgur.com/x6joDMm.png" height="60px"/> </a>
-</p>
+Patches are done in two major steps. At first they are created in FFDec itself and then they get processed by the patch creator of DIP.
 
-This tool automatically creates a DIP-suitable patch from finished SWF files. Instructions on usage can be found in its [README.md](https://github.com/Cutleast/Dynamic-Interface-Construction-Kit).
-
-# Manually creating Patches
-
-**This documentation always refers to the latest version of the patcher!**
-
-*Latest version as time of writing: v1.0*
-
-Patches are done in two major steps. At first they are created in FFDec itself and then they get documented in a json files for the automated patcher.
-A patch consists of two parts; a "Patch" folder that has the same folder structure as the mod to patch (including BSA files as folders). It contains the specifications and instructions for the patcher and there is a "Shapes" folder containing the shapes that will replace the shapes.
-
-**NOTE:** You can view the status of official patches [here](https://www.nexusmods.com/skyrimspecialedition/mods/92345/?tab=forum&topic_id=12944454). It would be very great if you'd read through that **before** starting to create a patch yourself. We love to see the community take action but it doesn't help anyone if two people are working on a patch at the same time and we end up with two.
+**NOTE:** You can view the status of official patches [here](OfficialPatches.md). It would be very great if you'd read through that **before** starting to create a patch yourself. We love to see the community take action but it doesn't help anyone if two people are working on a patch at the same time and we end up with two.
 
 ### Requirements for creating patches
 
 - [JPEXS Free Flash Decompiler](https://github.com/jindrapetrik/jpexs-decompiler)
   - you have to know how to use it, of course
 - (Skyrim) UI modding in general
-- basic knowledge about JSON syntax
 
 ### Things that can be patched automatically using the patcher
 
 - Shapes (svg files recommended; use png files at your own risk!)
 - Everything else via the JSON files
 
-# Patch folder structure
+## Instructions
+
+1. Create your patched SWF files in FFDec as you would publish them.
+2. Start DIP and go to the "Patch creator" tab.
+3. Put in the path to the original mod.
+4. Put in the path to the folder with your patched SWF files (same folder structure as the original mod without BSA).
+5. (Optional) Put in a path for the output to appear in.
+6. Click on *Run!*
+7. The output gets generated in a `Output` folder where DIP.exe is located or at your specified location.
+8. If the original mod had a BSA, create a folder with the full filename of the BSA in the `Patch` folder and move everything that's normally in the BSA in it.
+
+For example:
+
+`Direct output`:
+
+```
+Output (root folder)
+├── Patch
+|   └── interface
+|       ├── racemenu
+|       |   └── buttonart.json
+|       └── racesex_menu.json
+└── Shapes
+    ├── shape_1.svg
+    └── shape_2.svg
+```
+
+`Finished output` (with created BSA folder):
+
+```
+Output (root folder)
+├── Patch
+|   └── RaceMenu.bsa
+|       └── interface
+|           ├── racemenu
+|           |   └── buttonart.json
+|           └── racesex_menu.json
+└── Shapes
+    ├── shape_1.svg
+    └── shape_2.svg
+```
+
+9. Now you can publish the content of the output folder in a subfolder named like your patch (for eg. `Nordic UI - RaceMenu - DIP Patch`) so that the folder structure in Skyrim's data folder would look like this:
+
+```
+data (in Skyrim's installation directory)
+└── Nordic UI - RaceMenu - DIP Patch (the Output folder)
+    ├── Patch
+    |   └── RaceMenu.bsa
+    |       └── interface
+    |           ├── racemenu
+    |           |   └── buttonart.json
+    |           └── racesex_menu.json
+    └── Shapes
+        ├── shape_1.svg
+        └── shape_2.svg
+```
+
+10. The usage of a simple FOMOD is strongly recommended to avoid mod managers warning that the mod does not look correct for the data folder.
+
+## For advanced users
+
+If encounter some edge cases and the auto-generated patch causes some weird issues, check out the `config/patch_creator_config.json` config file and try to tweak it.
+
+# Patch structure
 
 The root folder name should contain "DIP" for the patcher to auto detect it and the "Patch" folder has the same structure as the mod that gets patched. This includes BSA archives as folders. For example, to patch `racesex_menu.swf` from the RaceMenu mod the path of the respective JSON file looks like this:
 
@@ -57,7 +103,7 @@ data (in Skyrim's installation directory)
         └── shape_2.svg
 ```
 
-# Patch file structure
+## Patch file structure
 
 A Patch JSON file consists of two major parts:
 
@@ -144,17 +190,20 @@ Since not all changes should be applied to every element in the file, filters ar
 
 # Patcher Commandline Usage
 
-```bash
-Usage: DIP.exe [-h] [-d] [-b] [patchpath] [originalpath]
+```
+Usage: DIP.exe [-h] [-d] [-b] [-o OUTPUT_PATH] [-s] [patchpath] [originalpath]
 
 Dynamic Interface Patcher (c) Cutleast
 
 Positional Arguments:
-  patchpath         Path to patch that gets automatically run. An original mod path must also be given!
-  originalpath      Path to original mod that gets automatically patched. A patch path must also be given!
+  patchpath             Path to patch that gets automatically run. An original mod path must also be given!
+  originalpath          Path to original mod that gets automatically patched. A patch path must also be given!
 
 Options:
-  -h, --help        Show this help message and exit
-  -d, --debug       Enables debug mode so that debug files get outputted.
-  -b, --repack-bsa  Enables experimental repacking of original BSA file(s).
+  -h, --help            Show this help message and exit
+  -d, --debug           Enables debug mode so that debug files get outputted.
+  -b, --repack-bsa      Enables experimental repacking of original BSA file(s).
+  -o, --output-path OUTPUT_PATH
+                        Specifies output path for patched files.
+  -s, --silent          Toggles whether the GUI is shown while patching automatically.
 ```
