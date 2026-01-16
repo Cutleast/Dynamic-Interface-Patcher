@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 from core.patch.patch_type import PatchType
 from core.utilities.cache import cache
@@ -16,10 +16,9 @@ from core.utilities.glob import glob
 from .patch_file import PatchFile
 
 
-@dataclass(kw_only=True)
-class Patch:
+class Patch(BaseModel):
     """
-    Dataclass representing a patch.
+    Model representing a patch.
     """
 
     path: Path

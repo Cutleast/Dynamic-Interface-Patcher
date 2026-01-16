@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import jstyleson as json
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 from core.utilities.xml_utils import parse_xpath_part
 
@@ -17,10 +17,9 @@ from .patch_item import PatchItem
 from .patch_type import PatchType
 
 
-@dataclass(kw_only=True)
-class PatchFile:
+class PatchFile(BaseModel):
     """
-    Dataclass representing a single patch file and its data.
+    Model representing a single patch file and its data.
     """
 
     path: Path
