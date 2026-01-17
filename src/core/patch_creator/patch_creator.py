@@ -417,11 +417,12 @@ class PatchCreator:
                         patch_item.changes[attr] = value
 
             elif element_tag in creation_whitelist:
-                self.log.debug(f"Creating element '{element_tag}' at '{cur_xpath}'...")
+                # remove filter from xpath
+                xpath = cur_xpath.rsplit("/", 1)[0] + "/" + element_tag
 
-                patch_item: PatchItem = result.setdefault(
-                    cur_xpath, PatchItem(cur_xpath, {})
-                )
+                self.log.debug(f"Creating element '{element_tag}' at '{xpath}'...")
+
+                patch_item: PatchItem = result.setdefault(xpath, PatchItem(xpath, {}))
                 patch_item.changes.update(
                     {
                         attr: value

@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
 
+from pydantic import TypeAdapter
 from sse_bsa import BSAArchive
 
 from core.cli_interface.ffdec import FFDecInterface
@@ -246,9 +247,9 @@ class Patcher:
             output_folder: Path = self.config.output_folder or self.cwd_path.parent
             mkdir(output_folder)
             _debug_json = (output_folder / f"{xml_file.stem}.json").resolve()
-            # TODO: Reimplement
-            # with open(_debug_json, "w", encoding="utf8") as file:
-            #     file.write(json.dumps(data, indent=4))
+            _debug_json.write_bytes(
+                TypeAdapter(list[PatchItem]).dump_json(patch_data, indent=4)
+            )
 
         # split frames as they aren't indexed or whatsoever in the XML
         xml_root = split_frames(xml_root)
