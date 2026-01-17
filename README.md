@@ -39,7 +39,7 @@ If you encountered an issue/error or you have a suggestion, create an issue unde
 
 1. Install [Python 3.12+](https://www.python.org/downloads/) (Make sure that you add it to PATH!)
 2. Install [uv](https://github.com/astral-sh/uv#installation)
-3. Clone repository
+3. Clone repository and its submodules
 4. Open a terminal in the cloned repository folder
 5. Run the following command to init your local environment and to install all dependencies
    `uv sync`
