@@ -438,7 +438,7 @@ wheels = [
 
 [[package]]
 name = "dynamic-interface-patcher"
-version = "2.2.0b1"
+version = "2.2.0b2"
 source = { virtual = "." }
 dependencies = [
     { name = "cutleast-core-lib" },
