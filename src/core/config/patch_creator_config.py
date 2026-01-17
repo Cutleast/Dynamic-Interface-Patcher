@@ -2,12 +2,10 @@
 Copyright (c) Cutleast
 """
 
-from argparse import Namespace
 from typing import override
 
+from cutleast_core_lib.core.config.base_config import BaseConfig
 from pydantic import Field
-
-from ._base_config import BaseConfig
 
 
 class PatchCreatorConfig(BaseConfig):
@@ -41,10 +39,6 @@ class PatchCreatorConfig(BaseConfig):
 
     shape_types: list[str] = Field(default_factory=list)
     """Shape types that are compared and exported"""
-
-    @override
-    def apply_from_namespace(self, namespace: Namespace) -> None:
-        pass
 
     @override
     @staticmethod

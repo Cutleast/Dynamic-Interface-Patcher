@@ -6,8 +6,8 @@ import logging
 import os
 from pathlib import Path
 
-from core.utilities.exe_info import get_current_path
-from core.utilities.process_runner import run_process
+from cutleast_core_lib.core.utilities.exe_info import get_current_path
+from cutleast_core_lib.core.utilities.process_runner import run_process
 
 
 class XDeltaInterface:
@@ -16,9 +16,9 @@ class XDeltaInterface:
     """
 
     log: logging.Logger = logging.getLogger("xdelta")
-    bin_path: Path = get_current_path() / "xdelta" / "xdelta.exe"
+    bin_path: Path = get_current_path() / "res" / "xdelta" / "xdelta.exe"
 
-    def patch_file(self, original_file_path: Path, xdelta_file_path: Path):
+    def patch_file(self, original_file_path: Path, xdelta_file_path: Path) -> None:
         self.log.info(f"Patching {original_file_path.name!r} with xdelta...")
 
         output_file_path: Path = original_file_path.with_suffix(".patched")

@@ -1,0 +1,10 @@
+// This file contains all the resource files and folders that are not included in the Qt
+// resource file
+[
+    "7-zip/*",
+    "config/patch_creator_config.json",
+    "ffdec/**/*",
+    "glob.dll",
+    "jre.7z",
+    "xdelta/*"
+]

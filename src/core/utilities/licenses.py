@@ -4,9 +4,8 @@ Copyright (c) Cutleast
 
 LICENSES = {
     "7-zip": "https://www.7-zip.org/license.txt",
-    "cx_freeze": "https://github.com/marcelotduarte/cx_Freeze/blob/main/LICENSE.md",
     "jstyleson": "https://github.com/linjackson78/jstyleson/blob/master/LICENSE",
-    "lz4": "https://github.com/python-lz4/python-lz4/blob/master/LICENSE",
+    "nuitka": "https://github.com/Nuitka/Nuitka/blob/develop/LICENSE.txt",
     "py7zr": "https://github.com/miurahr/py7zr/blob/master/LICENSE",
     "Qt6": "https://doc.qt.io/qt-6/lgpl.html",
     "qtawesome": "https://github.com/spyder-ide/qtawesome/blob/master/LICENSE.txt",

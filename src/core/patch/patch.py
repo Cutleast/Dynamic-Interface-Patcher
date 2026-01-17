@@ -10,7 +10,6 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from core.patch.patch_type import PatchType
-from core.utilities.cache import cache
 from core.utilities.glob import glob
 
 from .patch_file import PatchFile
@@ -45,7 +44,6 @@ class Patch(BaseModel):
         return self.path / "Shapes"
 
     @classmethod
-    @cache
     def get_logger(cls) -> logging.Logger:
         return logging.getLogger("Patch")
 

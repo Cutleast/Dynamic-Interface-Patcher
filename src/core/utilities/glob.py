@@ -7,9 +7,12 @@ See this issue for more information:
 """
 
 import ctypes
+import os
 from pathlib import Path
 
-lib = ctypes.CDLL("./glob.dll")
+from cutleast_core_lib.core.utilities.exe_info import get_current_path
+
+lib = ctypes.CDLL(os.path.join(get_current_path(), "res", "glob.dll"))
 
 ENCODING: str = "cp1252"
 """

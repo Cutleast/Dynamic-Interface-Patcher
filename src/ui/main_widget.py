@@ -5,7 +5,8 @@ Copyright (c) Cutleast
 import logging
 from typing import override
 
-import qtawesome as qta
+from cutleast_core_lib.core.utilities.logger import Logger
+from cutleast_core_lib.ui.widgets.copy_button import CopyButton
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import (
@@ -24,7 +25,6 @@ from core.config.config import Config
 from core.config.patch_creator_config import PatchCreatorConfig
 from core.patch_creator.patch_creator import PatchCreator
 from core.patcher.patcher import Patcher
-from core.utilities.logger import Logger
 from core.utilities.status_update import StatusUpdate
 
 from .base_tab import BaseTab
@@ -54,6 +54,7 @@ class MainWidget(QWidget):
     __progress_bar: QProgressBar
     __run_button: QPushButton
 
+    log_signal = Signal(str)
     incr_progress_signal = Signal()
 
     def __init__(
@@ -76,7 +77,8 @@ class MainWidget(QWidget):
 
         self.__patcher_widget.status_signal.connect(self.__handle_status_update)
         self.__patch_creator_widget.status_signal.connect(self.__handle_status_update)
-        self.logger.log_signal.connect(self.__handle_log_message)
+        self.logger.set_callback(self.log_signal.emit)
+        self.log_signal.connect(self.__handle_log_message)
         self.incr_progress_signal.connect(
             lambda: self.__progress_bar.setValue(self.__progress_bar.value() + 1)
         )
@@ -115,7 +117,7 @@ class MainWidget(QWidget):
     def __init_protocol_widget(self) -> None:
         self.__protocol_widget = QTextEdit()
         self.__protocol_widget.setReadOnly(True)
-        self.__protocol_widget.setObjectName("protocol")
+        self.__protocol_widget.setObjectName("monospace")
         self.__handle_log_message(self.logger.get_content())
         self.__vlayout.addWidget(self.__protocol_widget, 1)
 
@@ -131,7 +133,7 @@ class MainWidget(QWidget):
         self.__vlayout.addLayout(hlayout)
 
         self.__run_button = QPushButton("Run!")
-        self.__run_button.setObjectName("accent_button")
+        self.__run_button.setObjectName("primary")
         self.__run_button.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
         )
@@ -139,8 +141,7 @@ class MainWidget(QWidget):
         self.__patcher_widget.valid_signal.connect(self.__run_button.setEnabled)
         hlayout.addWidget(self.__run_button)
 
-        copy_log_button = QPushButton()
-        copy_log_button.setIcon(qta.icon("mdi6.content-copy", color="#ffffff"))
+        copy_log_button = CopyButton()
         copy_log_button.setToolTip("Copy Log to Clipboard")
         copy_log_button.clicked.connect(
             lambda: QApplication.clipboard().setText(
@@ -186,7 +187,7 @@ class MainWidget(QWidget):
                     self.__progress_bar.setProperty("failed", True)
 
                 self.__run_button.setText("Run!")
-                self.__run_button.setObjectName("accent_button")
+                self.__run_button.setObjectName("primary")
                 self.__run_button.clicked.disconnect()
                 self.__run_button.clicked.connect(self.__run)
 

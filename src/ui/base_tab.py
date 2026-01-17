@@ -5,11 +5,11 @@ Copyright (c) Cutleast
 from abc import abstractmethod
 from typing import Optional
 
+from cutleast_core_lib.core.utilities.thread import Thread
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
 from core.utilities.status_update import StatusUpdate
-from core.utilities.thread import Thread
 
 
 class BaseTab(QWidget):

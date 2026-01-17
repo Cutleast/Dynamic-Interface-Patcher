@@ -6,11 +6,10 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Optional, Self, override
 
+from cutleast_core_lib.core.config.base_config import BaseConfig
 from pydantic import model_validator
 
 from core.utilities.filesystem import is_dir
-
-from ._base_config import BaseConfig
 
 
 class Config(BaseConfig):
@@ -73,8 +72,14 @@ class Config(BaseConfig):
 
         return self
 
-    @override
     def apply_from_namespace(self, namespace: Namespace) -> None:
+        """
+        Applies configuration from command line arguments.
+
+        Args:
+            namespace (Namespace): Command line arguments.
+        """
+
         debug_mode: Optional[bool] = getattr(namespace, "debug", None)
         if debug_mode is not None:
             self.debug_mode = debug_mode

@@ -7,30 +7,26 @@ authors = [{ name = "Cutleast", email = "cutleast@gmail.com" }]
 license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
-    "jstyleson",
-    "lz4",
-    "py7zr",
-    "pydantic",
-    "pyside6",
-    "qtawesome",
-    "qtpy",
-    "rarfile",
+    "cutleast-core-lib",
     "sse-bsa",
-    "virtual-glob",
 ]
 
 [dependency-groups]
 dev = [
-    "cx-freeze",
     "nuitka",
-    "pyinstaller",
-    "pyinstaller-versionfile",
     "pyright",
     "pytest",
     "pytest-qt",
     "ruff",
-    "semantic-version",
 ]
+
+[tool.uv.workspace]
+members = [
+    "core-lib",
+]
+
+[tool.uv.sources]
+cutleast-core-lib = { workspace = true, editable = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
