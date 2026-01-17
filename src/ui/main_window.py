@@ -2,38 +2,31 @@
 Copyright (c) Cutleast
 """
 
-import os
+from typing import override
 
-import qtawesome as qta
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QColor
-from PySide6.QtWidgets import (
-    QApplication,
-    QDialog,
-    QHBoxLayout,
-    QLabel,
-    QListWidget,
-    QMainWindow,
-    QMessageBox,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+from cutleast_core_lib.core.utilities.logger import Logger
+from cutleast_core_lib.ui.widgets.about_dialog import AboutDialog
+from PySide6.QtGui import QCloseEvent
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
 
 from core.config.config import Config
 from core.config.patch_creator_config import PatchCreatorConfig
 from core.patch_creator.patch_creator import PatchCreator
 from core.patcher.patcher import Patcher
 from core.utilities.licenses import LICENSES
-from core.utilities.logger import Logger
 
 from .main_widget import MainWidget
+from .menubar import MenuBar
+from .statusbar import StatusBar
 
 
 class MainWindow(QMainWindow):
     """
     Class for main patcher window.
     """
+
+    __menu_bar: MenuBar
+    __main_widget: MainWidget
 
     def __init__(
         self,
@@ -45,114 +38,67 @@ class MainWindow(QMainWindow):
     ) -> None:
         super().__init__()
 
-        self.setCentralWidget(
-            MainWidget(logger, config, patch_creator_config, patcher, patch_creator)
-        )
         self.resize(1000, 600)
 
-        # Menu Bar
-        help_menu = self.menuBar().addMenu("Help")
+        self.__init_ui(logger, config, patch_creator_config, patcher, patch_creator)
 
-        about_action: QAction = help_menu.addAction("About")
-        about_action.setIcon(qta.icon("fa5s.info-circle", color="#ffffff"))
-        about_action.triggered.connect(self.about)
+        self.__menu_bar.exit_signal.connect(self.close)
+        self.__menu_bar.about_signal.connect(self.__show_about)
+        self.__menu_bar.about_qt_signal.connect(self.__show_about_qt)
 
-        about_qt_action: QAction = help_menu.addAction("About Qt")
-        about_qt_action.triggered.connect(self.about_qt)
-
-        # Fix link color
-        palette = self.palette()
-        palette.setColor(palette.ColorRole.Link, QColor("#4994e0"))
-        self.setPalette(palette)
-
-        docs_label = QLabel(
-            "\
-Interested in creating own patches? \
-Read the documentation \
-<a href='https://github.com/Cutleast/Dynamic-Interface-Patcher/blob/main/DOCUMENTATION.md'>\
-here</a>.\
-"
+    def __init_ui(
+        self,
+        logger: Logger,
+        config: Config,
+        patch_creator_config: PatchCreatorConfig,
+        patcher: Patcher,
+        patch_creator: PatchCreator,
+    ) -> None:
+        self.__init_menu_bar()
+        self.__init_main_widget(
+            logger, config, patch_creator_config, patcher, patch_creator
         )
-        docs_label.setTextFormat(Qt.TextFormat.RichText)
-        docs_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        docs_label.setOpenExternalLinks(True)
-        self.statusBar().addPermanentWidget(docs_label)
+        self.__init_status_bar()
 
-    def about(self):
-        """
-        Displays about dialog.
-        """
+    def __init_menu_bar(self) -> None:
+        self.__menu_bar = MenuBar()
+        self.setMenuBar(self.__menu_bar)
 
-        dialog = QDialog(QApplication.activeModalWidget())
-        dialog.setWindowTitle("About")
-
-        vlayout = QVBoxLayout()
-        dialog.setLayout(vlayout)
-
-        tab_widget = QTabWidget()
-        tab_widget.tabBar().setExpanding(True)
-        tab_widget.setObjectName("centered_tab")
-        vlayout.addWidget(tab_widget)
-
-        about_tab = QWidget()
-        about_tab.setObjectName("transparent")
-        tab_widget.addTab(about_tab, "About")
-
-        hlayout = QHBoxLayout()
-        about_tab.setLayout(hlayout)
-
-        hlayout.addSpacing(25)
-
-        icon = self.windowIcon()
-        pixmap = icon.pixmap(128, 128)
-        icon_label = QLabel()
-        icon_label.setPixmap(pixmap)
-        hlayout.addWidget(icon_label)
-
-        hlayout.addSpacing(15)
-
-        vlayout = QVBoxLayout()
-        hlayout.addLayout(vlayout, 1)
-
-        hlayout.addSpacing(25)
-        vlayout.addSpacing(25)
-
-        title_label = QLabel(
-            f"{QApplication.applicationName()} v{QApplication.applicationVersion()}"
+    def __init_main_widget(
+        self,
+        logger: Logger,
+        config: Config,
+        patch_creator_config: PatchCreatorConfig,
+        patcher: Patcher,
+        patch_creator: PatchCreator,
+    ) -> None:
+        self.__main_widget = MainWidget(
+            logger, config, patch_creator_config, patcher, patch_creator
         )
-        title_label.setObjectName("title_label")
-        vlayout.addWidget(title_label)
+        self.setCentralWidget(self.__main_widget)
 
-        text = """
-Created by Cutleast (<a href='https://next.nexusmods.com/profile/Cutleast'>NexusMods</a> 
-| <a href='https://github.com/cutleast'>GitHub</a> | <a href='https://ko-fi.com/cutleast'>Ko-Fi</a>)
-<br><br>
-Icon by Wuerfelhusten (<a href='https://next.nexusmods.com/profile/Wuerfelhusten'>NexusMods</a>)
-<br><br>
-Licensed under GNU General Public License v3.0
-"""
+    def __init_status_bar(self) -> None:
+        self.__status_bar = StatusBar()
+        self.setStatusBar(self.__status_bar)
 
-        credits_label = QLabel(text)
-        credits_label.setTextFormat(Qt.TextFormat.RichText)
-        credits_label.setOpenExternalLinks(True)
-        vlayout.addWidget(credits_label)
+    @override
+    def closeEvent(self, event: QCloseEvent) -> None:
+        event.ignore()
 
-        vlayout.addSpacing(25)
+        if self.__main_widget.close():
+            QApplication.quit()
 
-        licenses_tab = QListWidget()
-        tab_widget.addTab(licenses_tab, "Used Software")
+    def __show_about(self) -> None:
+        from app import App
 
-        licenses_tab.addItems(list(LICENSES.keys()))
+        AboutDialog(
+            app_name=App.APP_NAME,
+            app_version=App.APP_VERSION,
+            app_icon=App.get().windowIcon(),
+            app_license="GNU General Public License v3.0",
+            licenses=LICENSES,
+            parent=self,
+        ).exec()
 
-        licenses_tab.itemDoubleClicked.connect(
-            lambda item: os.startfile(LICENSES[item.text()])
-        )
-
-        dialog.exec()
-
-    def about_qt(self):
-        """
-        Displays about Qt dialog.
-        """
-
-        QMessageBox.aboutQt(QApplication.activeModalWidget(), "About Qt")
+    def __show_about_qt(self) -> None:
+        QMessageBox.aboutQt(self, self.tr("About Qt"))

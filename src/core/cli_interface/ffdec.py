@@ -5,11 +5,12 @@ Copyright (c) Cutleast
 import logging
 from pathlib import Path
 
-from core.archive.archive import Archive
-from core.utilities.exe_info import get_current_path
+from cutleast_core_lib.core.archive.archive import Archive
+from cutleast_core_lib.core.utilities.exe_info import get_current_path
+from cutleast_core_lib.core.utilities.process_runner import run_process
+
 from core.utilities.filesystem import is_file
 from core.utilities.glob import glob
-from core.utilities.process_runner import run_process
 
 
 class FFDecInterface:
@@ -19,8 +20,8 @@ class FFDecInterface:
 
     log: logging.Logger = logging.getLogger("FFDecInterface")
 
-    bin_path: Path = get_current_path() / "ffdec" / "ffdec.bat"
-    jre_archive_path: Path = get_current_path() / "jre.7z"
+    bin_path: Path = get_current_path() / "res" / "ffdec" / "ffdec.bat"
+    jre_archive_path: Path = get_current_path() / "res" / "jre.7z"
 
     def replace_shapes(self, swf_file: Path, shapes: dict[Path, list[int]]) -> None:
         """

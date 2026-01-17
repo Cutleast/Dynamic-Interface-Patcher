@@ -6,16 +6,16 @@ import logging
 from pathlib import Path
 from typing import Optional, override
 
+from cutleast_core_lib.core.utilities.thread import Thread
+from cutleast_core_lib.ui.widgets.browse_edit import BrowseLineEdit
 from PySide6.QtWidgets import QApplication, QFileDialog, QFormLayout, QMessageBox
 
 from core.config.config import Config
 from core.config.patch_creator_config import PatchCreatorConfig
 from core.patch_creator.patch_creator import PatchCreator
 from core.utilities.status_update import StatusUpdate
-from core.utilities.thread import Thread
 
 from .base_tab import BaseTab
-from .widgets.browse_edit import BrowseLineEdit
 
 
 class PatchCreatorWidget(BaseTab):
@@ -92,12 +92,7 @@ class PatchCreatorWidget(BaseTab):
 
         self.config.output_folder = output_path
 
-        self.valid_signal.emit(
-            original_path is not None
-            and original_path.is_dir()
-            and patched_path is not None
-            and patched_path.is_dir()
-        )
+        self.valid_signal.emit(original_path.is_dir() and patched_path.is_dir())
 
     def __set_input_enabled(self, enabled: bool) -> None:
         self.__original_path_entry.setEnabled(enabled)
@@ -106,15 +101,8 @@ class PatchCreatorWidget(BaseTab):
 
     @override
     def run(self) -> None:
-        original_path: Optional[Path] = self.__original_path_entry.getPath(
-            absolute=True
-        )
-        patched_path: Optional[Path] = self.__patched_path_entry.getPath(absolute=True)
-
-        if original_path is None or patched_path is None:
-            self.status_signal.emit(StatusUpdate.Failed)
-            self.log.error("Missing input path!")
-            return
+        original_path: Path = self.__original_path_entry.getPath(absolute=True)
+        patched_path: Path = self.__patched_path_entry.getPath(absolute=True)
 
         self.status_signal.emit(StatusUpdate.Running)
 

@@ -2,29 +2,26 @@
 Copyright (c) Cutleast
 """
 
-import logging
-import platform
-import subprocess
-import sys
 from argparse import Namespace
-from pathlib import Path
-from typing import override
+from typing import Optional, override
 
+from cutleast_core_lib.base_app import BaseApp
+from cutleast_core_lib.core.config.app_config import AppConfig
+from cutleast_core_lib.core.utilities.exe_info import get_current_path
+from cutleast_core_lib.core.utilities.singleton import Singleton
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication
 
+import resources_rc as resources_rc
 from core.config.config import Config
 from core.config.patch_creator_config import PatchCreatorConfig
 from core.patch_creator.patch_creator import PatchCreator
 from core.patcher.patcher import Patcher
-from core.utilities.exception_handler import ExceptionHandler
-from core.utilities.exe_info import get_current_path
-from core.utilities.logger import Logger
-from core.utilities.qt_res_provider import read_resource
+from core.utilities import filesystem as filesystem
 from ui.main_window import MainWindow
+from ui.utilities.theme_manager import ThemeManager
 
 
-class App(QApplication):
+class App(BaseApp, Singleton):
     """
     Main application class.
     """
@@ -32,94 +29,81 @@ class App(QApplication):
     APP_NAME: str = "Dynamic Interface Patcher"
     APP_VERSION: str = "development"
 
-    args: Namespace
     config: Config
     patch_creator_config: PatchCreatorConfig
 
-    app_path: Path = get_current_path()
-    cwd_path: Path = Path.cwd()
-
-    log: logging.Logger = logging.getLogger("App")
-    logger: Logger
-    log_path: Path = cwd_path / "DIP.log"
-    exception_handler: ExceptionHandler
-
-    main_window: MainWindow
     patcher: Patcher
     patch_creator: PatchCreator
 
     def __init__(self, args: Namespace) -> None:
-        super().__init__()
+        Singleton.__init__(self)
+        super().__init__(args)
 
-        self.args = args
-        self.config = Config.load(self.app_path / "config")
-        self.config.apply_from_namespace(args)
-        self.patch_creator_config = PatchCreatorConfig.load(self.app_path / "config")
-
-        self.logger = Logger(
-            self.log_path,
-            fmt="[%(asctime)s.%(msecs)03d][%(levelname)s][%(name)s.%(funcName)s]: %(message)s",
-            date_fmt="%d.%m.%Y %H:%M:%S",
-        )
-        self.logger.setLevel(Logger.Level.Debug)
-
+    @override
+    def _init(self) -> None:
         self.setApplicationName(App.APP_NAME)
-        self.setApplicationDisplayName(App.APP_NAME)
+        self.setApplicationDisplayName(f"{App.APP_NAME} v{App.APP_VERSION}")
         self.setApplicationVersion(App.APP_VERSION)
-        self.setStyleSheet(read_resource(":/style.qss"))
         self.setWindowIcon(QIcon(":/icons/icon.ico"))
 
-        self.log_basic_info()
-        self.config.print_settings_to_log()
-        self.log.info("App started!")
+        super()._init()
 
-        self.exception_handler = ExceptionHandler(self)
+    @override
+    def _load_app_config(self) -> AppConfig:
+        app_config: AppConfig = AppConfig.load(self.config_path, log_settings=False)
+        app_config.accent_color = "#0070e0"
+        app_config.log_file_name = "DIP.log"
+
+        self.log_path = get_current_path()
+
+        return app_config
+
+    @override
+    def _get_theme_manager(self) -> Optional[ThemeManager]:
+        return ThemeManager(self.app_config.accent_color, self.app_config.ui_mode)
+
+    @override
+    def _init_main_window(self) -> MainWindow:
+        self.config = Config.load(self.config_path, log_settings=False)
+        self.config.apply_from_namespace(self.args)
+        self.config.print_settings_to_log()
+        self.patch_creator_config = PatchCreatorConfig.load(self.res_path / "config")
+
         self.patcher = Patcher(self.config)
         self.patch_creator = PatchCreator(self.config, self.patch_creator_config)
-        self.main_window = MainWindow(
-            self.logger,
-            self.config,
-            self.patch_creator_config,
-            self.patcher,
-            self.patch_creator,
-        )
 
-    def log_basic_info(self) -> None:
-        """
-        Logs basic information.
-        """
-
-        width = 100
-        log_title = f" {App.APP_NAME} ".center(width, "=")
-        self.log.info(f"\n{'=' * width}\n{log_title}\n{'=' * width}")
-        self.log.info(f"Program Version: {App.APP_VERSION}")
-        self.log.info(f"Executed command: {subprocess.list2cmdline(sys.argv)}")
-        self.log.info(f"Current Path: {self.app_path}")
-        self.log.info(f"Working Directory: {self.cwd_path}")
-        self.log.info(f"Log Path: {self.log_path}")
-        self.log.info(
-            "Detected Platform: "
-            f"{platform.system()} {platform.version()} {platform.architecture()[0]}"
+        return MainWindow(
+            logger=self.logger,
+            config=self.config,
+            patch_creator_config=self.patch_creator_config,
+            patcher=self.patcher,
+            patch_creator=self.patch_creator,
         )
 
     @override
-    def exec(self) -> int:  # type: ignore
+    def exec(self) -> int:  # pyright: ignore[reportIncompatibleMethodOverride]
         silent: bool = self.config.auto_patch and self.config.silent
 
-        if not silent:
-            self.main_window.show()
+        return super().exec(show_main_window=not silent)
 
-        retcode: int = super().exec()
-
-        self.log.info("Exiting application...")
-        self.clean()
-
-        return retcode
-
+    @override
     def clean(self) -> None:
-        """
-        Cleans up temporary application files.
-        """
+        super().clean()
 
         self.patcher.clean()
         self.patch_creator.clean()
+
+    @override
+    @classmethod
+    def get_repo_owner(cls) -> Optional[str]:
+        return
+
+    @override
+    @classmethod
+    def get_repo_name(cls) -> Optional[str]:
+        return
+
+    @override
+    @classmethod
+    def get_repo_branch(cls) -> Optional[str]:
+        return

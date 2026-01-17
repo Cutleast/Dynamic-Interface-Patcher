@@ -90,7 +90,7 @@
 				"request": "launch",
 				"program": "${workspaceFolder:Dynamic-Interface-Patcher}/src/main.py",
 				"console": "internalConsole",
-				"cwd": "${workspaceFolder:Dynamic-Interface-Patcher}/res",
+				"cwd": "${workspaceFolder:Dynamic-Interface-Patcher}",
 				"args": [
 					"--debug",
 					"-o",

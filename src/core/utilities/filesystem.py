@@ -4,13 +4,17 @@ Copyright (c) Cutleast
 This module contains workaround functions for MO2 and Win 11 24H2.
 See this issue for more information:
     https://github.com/ModOrganizer2/modorganizer/issues/2174
+
+Importing this module will also patch
+- `os.makedirs()`
+- `Path.is_file()`
 """
 
+import os
 from pathlib import Path
 
+from cutleast_core_lib.core.utilities.process_runner import run_process
 from PySide6.QtCore import QDir, QFile
-
-from .process_runner import run_process
 
 
 def file_path_to_qpath(path: str | Path) -> QFile:
@@ -91,3 +95,17 @@ def mkdir(path: Path) -> None:
         run_process(["mkdir", str(path).replace("/", "\\")])
     elif is_file(path):
         raise FileExistsError(f"{str(path)!r} already exists!")
+
+
+def __makedirs(path, *args, **kwargs) -> None:  # pyright: ignore[reportMissingParameterType]
+    mkdir(Path(path))
+
+
+os.makedirs = __makedirs
+
+
+def __path_is_file(self: Path, *args, **kwargs) -> bool:  # pyright: ignore[reportMissingParameterType]
+    return is_file(self)
+
+
+Path.is_file = __path_is_file

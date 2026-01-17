@@ -7,7 +7,8 @@ import os
 from pathlib import Path
 from typing import override
 
-import qtawesome as qta
+from cutleast_core_lib.core.utilities.thread import Thread
+from cutleast_core_lib.ui.utilities.icon_provider import IconProvider
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
@@ -27,7 +28,6 @@ from core.patch.patch_provider import PatchProvider
 from core.patcher.patcher import Patcher
 from core.utilities.filesystem import is_dir
 from core.utilities.status_update import StatusUpdate
-from core.utilities.thread import Thread
 
 from .base_tab import BaseTab
 
@@ -74,7 +74,7 @@ class PatcherWidget(BaseTab):
         self.__patch_path_entry.currentTextChanged.connect(lambda _: self.__validate())
         patch_path_layout.addWidget(self.__patch_path_entry)
         patch_path_button = QPushButton()
-        patch_path_button.setIcon(qta.icon("fa5s.folder-open", color="#ffffff"))
+        patch_path_button.setIcon(IconProvider.get_qta_icon("fa5s.folder-open"))
 
         def browse_patch_path():
             file_dialog = QFileDialog(QApplication.activeModalWidget())
@@ -108,7 +108,7 @@ class PatcherWidget(BaseTab):
         self.__mod_path_entry.currentTextChanged.connect(lambda _: self.__validate())
         mod_path_layout.addWidget(self.__mod_path_entry)
         mod_path_button = QPushButton()
-        mod_path_button.setIcon(qta.icon("fa5s.folder-open", color="#ffffff"))
+        mod_path_button.setIcon(IconProvider.get_qta_icon("fa5s.folder-open"))
 
         def browse_mod_path():
             file_dialog = QFileDialog(QApplication.activeModalWidget())
@@ -180,9 +180,7 @@ class PatcherWidget(BaseTab):
         self.status_signal.emit(StatusUpdate.Running)
 
         self._thread = Thread(
-            lambda: self.patcher.patch(patch_path, mod_path),
-            "PatcherThread",
-            self,
+            lambda: self.patcher.patch(patch_path, mod_path), "PatcherThread", self
         )
         self._thread.finished.connect(self.on_done)
         self._thread.start()
