@@ -1,0 +1,51 @@
+= Quick start
+:description: Install Dynamic Interface Patcher and apply a compatible Skyrim UI patch.
+
+This guide walks through installing DIP and applying an existing compatibility patch. If you
+want to create a new patch, continue with xref:creating-patches.adoc[] instead.
+
+== Requirements
+
+* A supported Skyrim installation
+* Mod Organizer 2 or Vortex
+* The original UI mod required by the compatibility patch
+* A compatible DIP patch
+
+Compatible patches are normally published separately on Nexus Mods. Search for the original
+mod name together with `DIP Patch`, or review xref:official-patches.adoc[].
+
+== Install DIP and the patch
+
+. Install the original UI mod through your mod manager.
+. Download DIP from link:https://www.nexusmods.com/skyrimspecialedition/mods/96891[Nexus Mods].
+. Install DIP as a normal mod in Mod Organizer 2 or Vortex.
+. Download and install the compatible DIP patch for the original UI mod.
+. Keep the original mod, DIP, and the DIP patch enabled while running the patcher.
+
+NOTE: A DIP patch contains patch instructions, not the protected original assets. Both the
+original mod and its matching DIP patch are required.
+
+== Apply the patch
+
+. Start `DIP.exe` through your mod manager.
+. Keep the *Patcher* tab selected.
+. Under *Path to DIP Patch*, select the installed compatibility patch. DIP automatically lists
+  nearby directories whose names contain `DIP` and that contain a valid `Patch` directory.
+. Under *Path to Skyrim's Data folder*, select the active Skyrim `Data` directory.
+. Leave *Repack BSA(s)* disabled unless the patch author explicitly requires it.
+. Select *Run!*.
+. Wait until DIP reports that the patch completed successfully.
+
+WARNING: *Repack BSA(s)* is experimental and overwrites the original BSA archives. Enable it
+only when the patch instructions explicitly require it and you can restore the affected mod.
+
+== Troubleshooting
+
+If the *Run!* button remains disabled, check that:
+
+* the selected patch directory contains a `Patch` subdirectory;
+* the `Patch` directory contains at least one JSON or binary patch definition;
+* the selected original-mod path exists;
+* the DIP patch matches the installed version of the original UI mod.
+
+For repeatable or unattended runs, continue with xref:command-line.adoc[].

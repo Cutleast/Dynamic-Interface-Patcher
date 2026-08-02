@@ -1,4 +1,5 @@
 * xref:index.adoc[Overview]
+* xref:quick-start.adoc[Quick start]
 * xref:creating-patches.adoc[Creating patches]
 * xref:patch-structure.adoc[Patch structure]
 * xref:command-line.adoc[Command-line usage]

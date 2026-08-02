@@ -1,32 +1,37 @@
 = Dynamic Interface Patcher
 :description: Patch Skyrim UI mods locally without redistributing protected assets.
 
-Dynamic Interface Patcher (DIP) applies compatible patches to Skyrim UI mods locally.
+image::dip_header.webp[Dynamic Interface Patcher]
 
-== Overview
+== Description
 
-* *Purpose:* Patch UI mods with restrictive asset permissions, such as RaceMenu or MiniMap.
-* *Asset handling:* Original assets and files are processed locally and are not redistributed.
-* *Automation:* DIP extracts required BSA archives, patches shapes and SWF data, and produces
-  the patched output automatically.
-* *Mod-manager support:* DIP can be installed as a mod in Mod Organizer 2 or Vortex.
-* *Command-line support:* Patches can run without manual interaction with the graphical
-  interface.
-* *Compatible patches:* Search Nexus Mods for "DIP Patch" to find supported patch packages.
+Dynamic Interface Patcher (DIP) applies compatible patches to Skyrim UI mods locally. It is
+designed for mods with restrictive asset permissions, such as RaceMenu or MiniMap, whose
+original files must not be redistributed as part of a compatibility patch.
+
+DIP combines the original mod and a small compatible patch on your computer. The original
+assets therefore remain with their author and are never included in the distributed DIP patch.
+
+== Features
+
+* Fully automated patching
+* Local processing without redistributing protected assets
+* Automatic extraction of required BSA archives
+* Installation through Mod Organizer 2 or Vortex
+* Graphical patch selection and execution
+* Command-line support for automated patching
+* Dedicated patch creator for authors of compatibility patches
 
 WARNING: You are responsible for respecting the permissions of every original mod. Do not
 redistribute patched files unless the relevant permissions explicitly allow it.
 
-== Documentation
+== About this documentation
 
-* xref:creating-patches.adoc[Creating patches]: Generate a compatible patch from modified SWF
-  files.
-* xref:patch-structure.adoc[Patch structure]: Understand directories, JSON definitions, filters,
-  and modifications.
-* xref:command-line.adoc[Command-line usage]: Run patches automatically or without the graphical
-  interface.
-* xref:official-patches.adoc[Official patches]: Review released, planned, and discontinued
-  patches.
+* To install DIP and apply an existing compatibility patch, read xref:quick-start.adoc[].
+* To generate a new compatibility patch, read xref:creating-patches.adoc[].
+* To understand the generated directories and definitions, read xref:patch-structure.adoc[].
+* To automate patching, read xref:command-line.adoc[].
+* To find released and planned compatibility patches, read xref:official-patches.adoc[].
 
 == External resources
 
