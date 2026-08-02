@@ -1,38 +1,32 @@
 = Dynamic Interface Patcher
 :description: Patch Skyrim UI mods locally without redistributing protected assets.
 
-Dynamic Interface Patcher (DIP) is an automated patching tool for Skyrim UI mods with
-restrictive asset permissions, such as RaceMenu or MiniMap.
+Dynamic Interface Patcher (DIP) applies compatible patches to Skyrim UI mods locally.
 
-DIP applies compatible patches locally. Original assets and files are not redistributed.
-Compatible patches can be found on Nexus Mods by searching for "DIP Patch".
+== Overview
+
+* *Purpose:* Patch UI mods with restrictive asset permissions, such as RaceMenu or MiniMap.
+* *Asset handling:* Original assets and files are processed locally and are not redistributed.
+* *Automation:* DIP extracts required BSA archives, patches shapes and SWF data, and produces
+  the patched output automatically.
+* *Mod-manager support:* DIP can be installed as a mod in Mod Organizer 2 or Vortex.
+* *Command-line support:* Patches can run without manual interaction with the graphical
+  interface.
+* *Compatible patches:* Search Nexus Mods for "DIP Patch" to find supported patch packages.
 
 WARNING: You are responsible for respecting the permissions of every original mod. Do not
 redistribute patched files unless the relevant permissions explicitly allow it.
 
-== Features
+== Documentation
 
-* Fully automated patching
-* Automatic BSA extraction
-* Installation as a mod in Mod Organizer 2 or Vortex
-* Command-line arguments for automated patching
-
-== How it works
-
-. DIP copies the original mod into a temporary directory.
-. It extracts BSA archives when required.
-. It patches shapes.
-. It converts SWF files to XML.
-. It applies XML changes from the patch definition.
-. It converts the XML files back to SWF.
-. It copies the patched mod back to the selected directory.
-
-== Continue reading
-
-* xref:creating-patches.adoc[Create a compatible patch]
-* xref:patch-structure.adoc[Understand the patch format]
-* xref:command-line.adoc[Automate DIP from the command line]
-* xref:official-patches.adoc[View released and planned official patches]
+* xref:creating-patches.adoc[Creating patches]: Generate a compatible patch from modified SWF
+  files.
+* xref:patch-structure.adoc[Patch structure]: Understand directories, JSON definitions, filters,
+  and modifications.
+* xref:command-line.adoc[Command-line usage]: Run patches automatically or without the graphical
+  interface.
+* xref:official-patches.adoc[Official patches]: Review released, planned, and discontinued
+  patches.
 
 == External resources
 
