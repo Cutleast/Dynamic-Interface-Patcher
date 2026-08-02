@@ -14,7 +14,8 @@
 This is a dynamic patching tool for ui mods with strict permissions like RaceMenu or MiniMap.
 **No assets or files by the original mod authors get redistributed! Patching takes place exclusively locally and redistribution of the patched files is strictly prohibited according to the respective permissions.**
 The tool requires a compatible patch to work. Those can be found on the Skyrim nexus on Nexus Mods by searching for something like "DIP Patch".
-More info on creating patches can be found in the [documentation](./DOCUMENTATION.md).
+More information on creating patches is available in the
+[documentation](https://moddingforge.com/docs/dip).
 
 # Features
 

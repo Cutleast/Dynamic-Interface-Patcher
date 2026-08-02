@@ -1,0 +1,24 @@
+= Command-line usage
+
+DIP can patch a mod automatically without requiring manual interaction with the graphical
+interface.
+
+....
+Usage: DIP.exe [-h] [-d] [-b] [-o OUTPUT_PATH] [-s] [patchpath] [originalpath]
+
+Dynamic Interface Patcher (c) Cutleast
+
+Positional arguments:
+  patchpath             Path to the patch that should run automatically.
+  originalpath          Path to the original mod that should be patched.
+
+Options:
+  -h, --help            Show this help message and exit.
+  -d, --debug           Enable debug output.
+  -b, --repack-bsa      Enable experimental repacking of original BSA files.
+  -o, --output-path     Select the output directory for patched files.
+  -s, --silent          Hide the graphical interface during automatic patching.
+....
+
+Both positional paths are required for automatic patching. A patch path without an original
+mod path, or an original mod path without a patch path, is not sufficient.

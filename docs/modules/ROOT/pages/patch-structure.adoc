@@ -1,0 +1,114 @@
+= Patch structure
+
+The root directory name should contain `DIP` so the patcher can detect it automatically.
+The `Patch` directory mirrors the structure of the original mod. BSA archives are represented
+as directories that use the complete archive filename.
+
+For example, a patch for `racesex_menu.swf` in `RaceMenu.bsa` uses this JSON path:
+
+....
+<RaceMenu>/RaceMenu.bsa/interface/racesex_menu.json
+....
+
+A complete patch can look like this:
+
+....
+Data/
+`-- Example DIP Patch/
+    |-- Patch/
+    |   `-- RaceMenu.bsa/
+    |       `-- interface/
+    |           |-- racemenu/
+    |           |   `-- buttonart.json
+    |           `-- racesex_menu.json
+    `-- Shapes/
+        |-- shape_1.svg
+        `-- shape_2.svg
+....
+
+== Patch JSON
+
+A patch JSON file contains two primary sections:
+
+* `shapes` maps replacement shape IDs to files in the `Shapes` directory.
+* `swf` describes the changes applied to the XML representation of the SWF file.
+
+The optional `optional` property indicates that the original SWF file is not required. DIP
+skips that patch file instead of reporting an error when the original file is absent.
+
+== SWF patch keys
+
+DIP converts SWF files to XML before applying changes. The `swf` object therefore mirrors the
+structure of the exported XML. Three key prefixes distinguish filters, modifications, and
+parent elements.
+
+|===
+|Key type |Prefix
+
+|Filter
+|`#`
+
+|Modification
+|`~`
+
+|Parent element
+|No prefix
+|===
+
+The following example replaces shapes and modifies selected XML elements:
+
+[source,json]
+----
+{
+  "shapes": [
+    {
+      "id": "1,2,5,7,9",
+      "fileName": "example.svg"
+    }
+  ],
+  "optional": true,
+  "swf": {
+    "displayRect": {
+      "~Xmax": "25600",
+      "~Xmin": "0",
+      "~Ymax": "14400",
+      "~Ymin": "0"
+    },
+    "tags": [
+      {
+        "#type": "DefineSpriteTag",
+        "#spriteId": "3",
+        "subTags": [
+          {
+            "#type": "PlaceObject2Tag",
+            "#characterId": "2",
+            "#depth": "1",
+            "~placeFlagHasMatrix": "true"
+          },
+          {
+            "#type": "PlaceObject2Tag",
+            "#characterId": "2",
+            "#depth": "1",
+            "matrix": {
+              "~hasScale": "true",
+              "~scaleX": "0",
+              "~scaleY": "0"
+            }
+          }
+        ]
+      },
+      {
+        "#type": "DefineEditTextTag",
+        "#characterID": "5",
+        "textColor": {
+          "~type": "RGBA",
+          "~alpha": "255",
+          "~blue": "255",
+          "~green": "255",
+          "~red": "255"
+        }
+      }
+    ]
+  }
+}
+----

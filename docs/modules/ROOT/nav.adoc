@@ -1,0 +1,5 @@
+* xref:index.adoc[Overview]
+* xref:creating-patches.adoc[Creating patches]
+* xref:patch-structure.adoc[Patch structure]
+* xref:command-line.adoc[Command-line usage]
+* xref:official-patches.adoc[Official patches]

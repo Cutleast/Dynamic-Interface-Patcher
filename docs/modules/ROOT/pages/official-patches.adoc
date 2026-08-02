@@ -1,0 +1,54 @@
+= Official patches
+
+Check this list before starting a new patch to avoid duplicating work already in progress.
+
+== Released
+
+=== RaceMenu
+
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97348[Nordic UI]
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97354[Horizons UI]
+  (transparent and opaque)
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97349[Dear Diary Dark Mode]
+  (white and warm text)
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97355[Dear Diary (Light Mode)]
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97347[Untarnished UI]
+
+=== MiniMap
+
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97356[Nordic UI]
+* link:https://www.nexusmods.com/skyrimspecialedition/mods/97357[Untarnished UI]
+
+== Work in progress
+
+=== RaceMenu
+
+* Edge UI
+* New Horizons UI
+
+== Planned
+
+There are currently no additional planned official patches.
+
+== Discontinued indefinitely
+
+The following patches are not currently planned because of other project priorities.
+Community contributors may create them, but should notify the maintainers first so this list
+can be updated.
+
+=== RaceMenu
+
+* Dragonbreaker UI
+
+=== MiniMap
+
+* Dear Diary Dark Mode
+* Dear Diary
+* Horizons UI
+
+=== Enhanced Character Edit
+
+* Nordic UI
+* Untarnished UI
+* Dear Diary Dark Mode
+* Dear Diary

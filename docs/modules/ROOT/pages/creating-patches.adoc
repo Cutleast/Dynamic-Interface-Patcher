@@ -1,0 +1,97 @@
+= Creating patches
+
+Creating a DIP patch consists of two stages. First, create the modified SWF files in JPEXS
+Free Flash Decompiler. Then use the DIP patch creator to generate the distributable patch
+definitions.
+
+NOTE: Check xref:official-patches.adoc[the official patch list] before starting. Coordinating
+planned work prevents multiple contributors from creating the same patch independently.
+
+== Requirements
+
+* link:https://github.com/jindrapetrik/jpexs-decompiler[JPEXS Free Flash Decompiler]
+* Familiarity with JPEXS Free Flash Decompiler
+* General knowledge of Skyrim UI modding
+
+== Supported automatic changes
+
+The patch creator can generate definitions for:
+
+* Shapes, preferably supplied as SVG files
+* Other SWF changes represented by JSON patch files
+
+CAUTION: PNG shapes may work, but SVG files are recommended.
+
+== Generate the patch
+
+. Create the patched SWF files in JPEXS Free Flash Decompiler as you would for a normal
+  release.
+. Start DIP and open the *Patch creator* tab.
+. Select the original mod directory.
+. Select the directory containing your patched SWF files. It must use the same relative
+  directory structure as the original mod, excluding any BSA container.
+. Optionally select a custom output directory.
+. Select *Run*.
+. Find the generated files in the `Output` directory next to `DIP.exe`, or in the custom
+  output directory.
+. If the original mod contains a BSA, create a directory with the complete BSA filename
+  inside `Patch` and move the generated files that belong to the archive into it.
+
+For example, direct patch-creator output can look like this:
+
+....
+Output/
+|-- Patch/
+|   `-- interface/
+|       |-- racemenu/
+|       |   `-- buttonart.json
+|       `-- racesex_menu.json
+`-- Shapes/
+    |-- shape_1.svg
+    `-- shape_2.svg
+....
+
+After placing the interface files in their original BSA container directory:
+
+....
+Output/
+|-- Patch/
+|   `-- RaceMenu.bsa/
+|       `-- interface/
+|           |-- racemenu/
+|           |   `-- buttonart.json
+|           `-- racesex_menu.json
+`-- Shapes/
+    |-- shape_1.svg
+    `-- shape_2.svg
+....
+
+== Package the patch
+
+Publish the generated output inside a uniquely named mod directory. Its name should contain
+`DIP` so that the patcher can detect it automatically.
+
+....
+Data/
+`-- Nordic UI - RaceMenu - DIP Patch/
+    |-- Patch/
+    |   `-- RaceMenu.bsa/
+    |       `-- interface/
+    |           |-- racemenu/
+    |           |   `-- buttonart.json
+    |           `-- racesex_menu.json
+    `-- Shapes/
+        |-- shape_1.svg
+        `-- shape_2.svg
+....
+
+A simple FOMOD installer is strongly recommended. It prevents mod managers from reporting
+that the package has an unexpected game-directory structure.
+
+== Troubleshooting generated patches
+
+If an automatically generated patch behaves incorrectly, inspect
+`config/patch_creator_config.json` and adjust the relevant patch-creator settings.
+
+Continue with xref:patch-structure.adoc[Patch structure] for details about generated JSON
+files.
