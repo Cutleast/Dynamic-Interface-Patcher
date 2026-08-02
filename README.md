@@ -2,6 +2,7 @@
 <img src="https://i.imgur.com/Tl3rkTE.png" width="500px" />
 <br>
 <a href="https://www.nexusmods.com/skyrimspecialedition/mods/96891"><img src="https://i.imgur.com/STsBXT6.png" height="60px"/> </a>
+<a href="https://moddingforge.com/docs/dip"><img src="https://i.imgur.com/NFNG8Tb.png" height="60px"/> </a>
 <a href="https://ko-fi.com/cutleast"><img src="https://i.imgur.com/KcPrhK5.png" height="60px"/> </a>
 <br>
 
